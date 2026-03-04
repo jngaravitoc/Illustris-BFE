@@ -30,15 +30,20 @@ from hydrotools.common import fields as common_fields
 # ---------------------------------------------------------------------------
 
 SIMS = [
-    #'tng35',
-    'tng35-2',
-    'tng35-3',
-    #'tng35-dark',
-    #'tng75',
+    'tng75',
+    'tng75-dark',
     'tng75-2',
     'tng75-3',
     'tng75-3-dark',
-    #'tng75-dark',
+    'tng205',
+    'tng205-dark',
+    'tng205-2',
+    'tng205-3',
+    'tng35',
+    'tng35-dark',
+    'tng35-2',
+    'tng35-3',
+    'tng35-3-dark',
 ]
 
 
@@ -173,7 +178,7 @@ def parse_args() -> argparse.Namespace:
         description="Extract subfind IDs for MW-like halos across TNG suites.",
     )
     parser.add_argument(
-        '--output-path', type=str, default='.',
+        '--output-path', type=str, default='/n/nyx3/garavito/projects/Illustris-BFE/temp_data/',
         help="Root output directory.  Per-sim data goes into <output_path>/data/<sim>/  (default: '.')",
     )
     parser.add_argument(
@@ -201,33 +206,37 @@ def main() -> None:
 
     sims = args.sims if args.sims else SIMS
 
+
     for sim in sims:
-        print(f"\n{'='*60}")
-        print(f"Processing {sim}  (snap {args.snap_idx})")
-        print(f"{'='*60}")
+        try:
+            print(f"\n{'='*60}")
+            print(f"Processing {sim}  (snap {args.snap_idx})")
+            print(f"{'='*60}")
 
-        sim_dir = os.path.join(args.output_path, 'data', sim)
-        os.makedirs(sim_dir, exist_ok=True)
+            sim_dir = os.path.join(args.output_path, 'temp_data', sim)
+            os.makedirs(sim_dir, exist_ok=True)
 
-        datafile = extract_galaxy(
-            sim=sim,
-            snap_idx=args.snap_idx,
-            output_dir=sim_dir,
-            Mmin=args.Mmin,
-            Mmax=args.Mmax,
-        )
+            datafile = extract_galaxy(
+                sim=sim,
+                snap_idx=args.snap_idx,
+                output_dir=sim_dir,
+                Mmin=args.Mmin,
+                Mmax=args.Mmax,
+            )
 
-        if not os.path.isfile(datafile):
-            print(f"  [WARNING] Expected output not found: {datafile}")
-            continue
+            if not os.path.isfile(datafile):
+                print(f"  [WARNING] Expected output not found: {datafile}")
+                continue
 
-        save_halo_sample(
-            datafile=datafile,
-            sim=sim,
-            output_dir=sim_dir,
-            Mmin=args.Mmin,
-            Mmax=args.Mmax,
-        )
+            save_halo_sample(
+                datafile=datafile,
+                sim=sim,
+                output_dir=sim_dir,
+                Mmin=args.Mmin,
+                Mmax=args.Mmax,
+            )
+        except Exception as e:
+            print(f"  [ERROR] Exception while processing {sim}: {e}")
 
     print("\nDone.")
 
