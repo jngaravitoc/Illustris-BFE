@@ -574,8 +574,7 @@ if __name__ == "__main__":
     ngalaxies = 1
 
     suffix = "_ngal_{:2d}".format(ngalaxies)
-    filename = f"galaxies_{sim}{suffix}.hdf5"
-    out_hdf5_filename = os.path.join(args.output_path, filename)
+ 
 
     # Extract subfind ids
     for sim in sims:
@@ -589,4 +588,7 @@ if __name__ == "__main__":
                 print(f"  [ERROR] Exception while processing {sim}: {e}")
 
     # Extract halo properties from subfind_ids
-    get_halo_evol(sims[0], out_hdf5_filename, args.output_path, args.Mmin, args.Mmax)
+    sim = sims[0]
+    filename = f"galaxies_{sim}{suffix}.hdf5"
+    out_hdf5_filename = os.path.join(args.output_path, filename)
+    get_halo_evol(sim, out_hdf5_filename, args.output_path, args.Mmin, args.Mmax)
