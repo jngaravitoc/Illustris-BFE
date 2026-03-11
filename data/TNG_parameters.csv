@@ -1,4 +1,4 @@
-SimName,SimcName,Lbox [kpc],NDM,mDM [Msun],mgas [Msun],Nsnap,Nsubfind z=0
+SimName,AltName,Lbox [kpc],NDM,mDM [Msun],mgas [Msun],Nsnap,Nsubfind z=0
 tng75,TNG100-1,110.7,1820^3,7.5e6,1.4e6,100,4371211
 tng75-dark,TNG100-1-Dark,110.7,1820^3,8.9e6,0,100,5012155
 tng75-2,TNG100-2,110.7,910^3,6.0e7,1.1e7,100,698336
