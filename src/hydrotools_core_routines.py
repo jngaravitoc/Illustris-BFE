@@ -30,18 +30,18 @@ from hydrotools.common import fields as common_fields
 # ---------------------------------------------------------------------------
 
 SIMS = [
-    'tng75',
-    'tng75-dark',
-    'tng75-2',
+    #'tng75',
+    #'tng75-dark',
+    #'tng75-2',
     'tng75-3',
     'tng75-3-dark',
-    'tng205',
-    'tng205-dark',
-    'tng205-2',
+    #'tng205',
+    #'tng205-dark',
+    #'tng205-2',
     'tng205-3',
-    'tng35',
-    'tng35-dark',
-    'tng35-2',
+    #'tng35',
+    #'tng35-dark',
+    #'tng35-2',
     'tng35-3',
     'tng35-3-dark',
 ]
@@ -108,7 +108,7 @@ def extract_halo_ids(sim: str, snap_idx: int, output_dir: str,
         verbose=False,
         mass_selection_type='and',
         output_path=output_dir,
-        file_suffix="_ngal_{:2d}".format(ngalaxies),
+        file_suffix="_ngal_{:02d}".format(ngalaxies),
         buffered_output=False,
         output_compression='gzip',
         Mdm_min=Mmin,
@@ -484,7 +484,7 @@ def parse_args() -> argparse.Namespace:
         description="Extract subfind IDs for MW-like halos across TNG suites.",
     )
     parser.add_argument(
-        '--output-path', type=str, default='/n/nyx3/garavito/projects/Illustris-BFE/',
+        '--output-path', type=str, default='/n/nyx3/garavito/projects/Illustris-BFE/data/',
         help="Root output directory.  Per-sim data goes into <output_path>/data/<sim>/  (default: '.')",
     )
     parser.add_argument(
@@ -573,10 +573,10 @@ if __name__ == "__main__":
     for sim in sims:
         sim_dir = os.path.join(args.output_path, sim)
 
-        file_exists = _check_galaxy_file_exists(sim_dir, ngalaxies=ngalaxies)
+        file_exists = _check_galaxy_file_exists(sim_dir, sim, ngalaxies=ngalaxies)
         if file_exists == False:
             try:
-                get_halo_ids()
+                get_halo_ids(sim)
             except Exception as e:
                 print(f"  [ERROR] Exception while processing {sim}: {e}")
 
