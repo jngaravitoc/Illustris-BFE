@@ -401,6 +401,11 @@ def main() -> None:
     if not args.no_show:
         plt.show()
 
+def time_evolution_check_plot(sim):
+    data_path = "/n/nyx3/garavito/projects/Illustris-BFE/data/tng35-3-dark/"
+    
+    filenames = "galaxies_halo_{}_tng50-3-dark_{}.hdf5"
+    
 
 if __name__ == "__main__":
-    main()
+    
