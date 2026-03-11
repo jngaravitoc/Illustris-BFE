@@ -537,7 +537,7 @@ def get_halo_ids(sim: str, ncores: int = 1, ngalaxies: int = 1) -> None:
 
     if not os.path.isfile(datafile):
         print(f"  [WARNING] Expected output not found: {datafile}")
-        continue
+        #continue
 
     save_halo_time_evolution(
         datafile=datafile,
