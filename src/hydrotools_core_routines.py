@@ -307,7 +307,7 @@ def save_halo_time_evolution(datafile: str, sim: str, output_dir: str,
         fmt_data += ("%d",)
         header += f" {int(subfind_ids[i][-1])}"
 
-    out_txt = os.path.join(output_dir, f'{sim}_halo_sample.txt')
+    out_txt = os.path.join(output_dir, f'{sim}_halo_time_evol.txt')
     np.savetxt(out_txt, data, fmt=fmt_data, header=header)
     print(f"  -> Saved {out_txt}")
 
@@ -552,12 +552,15 @@ def get_halo_ids(sim: str, ncores: int = 1, ngalaxies: int = 1) -> None:
 
 
 
-#def get_halo_evol()
-#    for sim in sims:
-        
-#        load_subfind_ids()
-#        extract_galaxy_from_subfind_id()
-#        save_halo_time_evolution
+def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmin, Mmax):
+    save_halo_time_evolution(halo_subfind_ids_filename, 
+                             sim, output_dir_time_evol_file,
+                             Mmin, Mmax)
+    time_evol_txt = os.path.join(output_dir_time_evol_file, f'{sim}_halo_time_evol.txt')
+    time_evol_data = load_subfind_ids(time_evol_txt)
+    subfind_ids = time_evol_data["subfind_ids"]
+    print(subfind_ids)
+    #extract_galaxy_from_subfind_id(sim, snap_idx=snap, subfind_id=subfind_ids, output_dir=, ncores=ncores)
 
 
 #def plot_halo_evolution():
@@ -570,6 +573,11 @@ if __name__ == "__main__":
     sims = args.sims if args.sims else SIMS
     ngalaxies = 1
 
+    suffix = "_ngal_{:2d}".format(ngalaxies)
+    filename = f"galaxies_{sim}{suffix}.hdf5"
+    out_hdf5_filename = os.path.join(args.output_path, filename)
+
+    # Extract subfind ids
     for sim in sims:
         sim_dir = os.path.join(args.output_path, sim)
 
@@ -580,4 +588,5 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"  [ERROR] Exception while processing {sim}: {e}")
 
-    #get_halo_evol()
+    # Extract halo properties from subfind_ids
+    get_halo_evol(sims[0], out_hdf5_filename, args.output_path, args.Mmin, args.Mmax)
