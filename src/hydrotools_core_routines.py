@@ -449,6 +449,31 @@ def write_one_single_hdf5(
 
 
 
+def _check_galaxy_file_exists(output_dir: str, sim: str, ngalaxies: int) -> bool:
+    """
+    Check whether a file exists in output_dir with the format:
+    galaxies_<sim>_ngal_{:2d}.hdf5
+
+    Parameters
+    ----------
+    output_dir : str
+        Directory to check for the file.
+    sim : str
+        Simulation name.
+    ngalaxies : int
+        Number of galaxies (used in the suffix).
+
+    Returns
+    -------
+    bool
+        True if the file exists, False otherwise.
+    """
+    suffix = "_ngal_{:2d}".format(ngalaxies)
+    filename = f"galaxies_{sim}{suffix}.hdf5"
+    filepath = os.path.join(output_dir, filename)
+    return os.path.isfile(filepath)
+
+
 #--------------------------------------------------------------
 # CLI & main
 # ---------------------------------------------------------------------------
@@ -497,7 +522,7 @@ def get_halo_ids(sim: str, ncores: int = 1, ngalaxies: int = 1) -> None:
     print(f"Processing {sim}  (snap {args.snap_idx})")
     print(f"{'='*60}")
 
-    sim_dir = os.path.join(args.output_path, 'temp_data', sim)
+    sim_dir = os.path.join(args.output_path, sim)
     os.makedirs(sim_dir, exist_ok=True)
 
     datafile = extract_halo_ids(
@@ -543,11 +568,16 @@ if __name__ == "__main__":
     # TODO: have the sims loop here instead of inside the functions
     args = parse_args()
     sims = args.sims if args.sims else SIMS
+    ngalaxies = 1
 
     for sim in sims:
-        try:
-            get_halo_ids()
-        except Exception as e:
-            print(f"  [ERROR] Exception while processing {sim}: {e}")
+        sim_dir = os.path.join(args.output_path, sim)
+
+        file_exists = _check_galaxy_file_exists(sim_dir, ngalaxies=ngalaxies)
+        if file_exists == False:
+            try:
+                get_halo_ids()
+            except Exception as e:
+                print(f"  [ERROR] Exception while processing {sim}: {e}")
 
     #get_halo_evol()
