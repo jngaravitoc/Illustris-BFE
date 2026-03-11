@@ -179,6 +179,7 @@ def extract_galaxy_from_subfind_id(
         mass_selection_type='idxs',
         sh_idxs=[subfind_id],
         output_path=output_dir,
+        file_suffix=f"_halo_{str(subfind_id)}",
         buffered_output=False,
         output_compression='gzip',
         extract_satellites=True,
@@ -306,6 +307,7 @@ def save_halo_time_evolution(datafile: str, sim: str, output_dir: str,
         data[:, i + 3] = subfind_ids[i]
         fmt_data += ("%d",)
         header += f" {int(subfind_ids[i][-1])}"
+
 
     out_txt = os.path.join(output_dir, f'{sim}_halo_time_evol.txt')
     np.savetxt(out_txt, data, fmt=fmt_data, header=header)
@@ -557,7 +559,9 @@ Mmin, Mmax, ncores):
     save_halo_time_evolution(halo_subfind_ids_filename, 
                              sim, output_dir_time_evol_file,
                              Mmin, Mmax)
-    time_evol_txt = os.path.join(output_dir_time_evol_file, f'{sim}_halo_time_evol.txt')
+    time_evol_txt = os.path.join(output_dir_time_evol_file, sim, f'{sim}_halo_time_evol.txt')
+    os.path.isfile(time_evol_txt)
+
     time_evol_data = load_subfind_ids(time_evol_txt)
     subfind_ids = time_evol_data["subfind_ids"]
     nids = len(subfind_ids)
@@ -566,7 +570,7 @@ Mmin, Mmax, ncores):
         extract_galaxy_from_subfind_id(
             sim, 
             snap_idx=snap, 
-            subfind_id=subfind_ids, 
+            subfind_id=subfind_ids[i][0], 
             output_dir=output_dir_time_evol_file,
             ncores=ncores)
 
