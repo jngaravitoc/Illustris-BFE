@@ -30,18 +30,19 @@ from hydrotools.common import fields as common_fields
 # ---------------------------------------------------------------------------
 
 SIMS = [
-    #'tng75',
-    #'tng75-dark',
-    #'tng75-2',
+    'tng75',
+    'tng75-dark',
+    'tng75-2',
     'tng75-3',
     'tng75-3-dark',
-    #'tng205',
-    #'tng205-dark',
-    #'tng205-2',
+    'tng205-dark', 
+    'tng205-2',
+    'tng205-2-dark',
     'tng205-3',
-    #'tng35',
-    #'tng35-dark',
-    #'tng35-2',
+    'tng205-3-dark',
+    'tng35-dark',
+    'tng35-2',
+    'tng35-2-dark',
     'tng35-3',
     'tng35-3-dark',
 ]

@@ -47,13 +47,14 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LogNorm
+from hydrotools_core_routines import load_subfind_ids
 
 
 # ---------------------------------------------------------------------------
 # Data helpers
 # ---------------------------------------------------------------------------
 
-def com_halo(datafile_template: str, snap: int) -> np.ndarray:
+def com_halo(datafile: str) -> np.ndarray:
     """Return the centre-of-mass position of the first group in *snap*.
 
     Parameters
@@ -69,12 +70,11 @@ def com_halo(datafile_template: str, snap: int) -> np.ndarray:
     np.ndarray
         Shape-(3,) array with the (x, y, z) group position in kpc/h.
     """
-    datafile = datafile_template.format(snap)
     with h5py.File(datafile, "r") as f:
         return np.array(f["catgrp_GroupPos"][0])
 
 
-def mcrit200(datafile_template: str, snap: int) -> float:
+def mcrit200(datafile: str) -> float:
     """Return M_Crit200 for the first group in *snap*.
 
     Parameters
@@ -94,7 +94,6 @@ def mcrit200(datafile_template: str, snap: int) -> float:
     **Bug-fix**: the original notebook always read from a global ``DATAFILE``
     instead of building the path from *snap*.
     """
-    datafile = datafile_template.format(snap)
     with h5py.File(datafile, "r") as f:
         return float(np.array(f["catgrp_Group_M_Crit200"][0]))
 
@@ -147,10 +146,11 @@ def find_key_coordinates(f: h5py.File) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 def plot_evolution(
-    datafile_template: str,
-    snap_start: int = 79,
-    nsnaps: int = 20,
-) -> plt.Figure:
+    datafile_basename: str,
+    snaps,
+    subfind_ids,
+    figname: str,
+) -> None:
     """Create a two-panel figure of COM position norm and M_200c vs snapshot.
 
     This reproduces **code-cell 6** (the plot in code-cell 8 of the full
@@ -160,38 +160,40 @@ def plot_evolution(
     ----------
     datafile_template : str
         Format string for the HDF5 file path.
-    snap_start : int
-        First snapshot number (inclusive).
-    nsnaps : int
-        Number of consecutive snapshots to process.
+    snaps : numpy array
+        With the array of snapshots
+    subfind_ids : numpy array
+        With the array of subfind_ids
 
     Returns
     -------
-    matplotlib.figure.Figure
+    None 
     """
+    nsnaps = len(snaps)
     pos_com = np.zeros((nsnaps, 3))
     m_200c = np.zeros(nsnaps)
-    snap_indices = np.arange(snap_start, snap_start + nsnaps)
-
-    for j, snap in enumerate(snap_indices):
-        pos_com[j] = com_halo(datafile_template, snap)
-        m_200c[j] = mcrit200(datafile_template, snap)
+    for i in range(nsnaps):
+        datafile = os.path.join(datafile_basename.format(subfind_ids[i], snaps[i]))
+        pos_com[i] = com_halo(datafile)
+        m_200c[i] = mcrit200(datafile)
 
     fig, ax = plt.subplots(1, 2, figsize=(8, 4))
 
-    ax[0].plot(snap_indices, np.linalg.norm(pos_com, axis=1))
+    fig.
+
+    ax[0].plot(snaps, np.linalg.norm(pos_com, axis=1))
     ax[0].set_xlabel("Snapshot")
     ax[0].set_ylabel(r"$|\mathbf{r}_{\rm COM}|$ [kpc/$h$]")
     ax[0].set_title("Centre-of-mass distance")
 
-    ax[1].plot(snap_indices, m_200c)
+    ax[1].plot(snaps, m_200c)
     ax[1].set_xlabel("Snapshot")
     ax[1].set_ylabel(r"$M_{200c}$ [$10^{10}\,M_\odot/h$]")
     ax[1].set_title(r"$M_{200c}$ evolution")
 
-    fig.tight_layout()
-    return fig
 
+    fig.savefig(figname)
+    
 
 def plot_halo_particles(
     datafile_template: str,
@@ -282,7 +284,8 @@ def parse_args() -> argparse.Namespace:
         epilog=__doc__,
     )
     parser.add_argument(
-        "datafile",
+        "--datafile",
+        default=None,
         type=str,
         help=(
             "Format-string path to the HDF5 snapshots, e.g. "
@@ -403,9 +406,16 @@ def main() -> None:
 
 def time_evolution_check_plot(sim):
     data_path = "/n/nyx3/garavito/projects/Illustris-BFE/data/tng35-3-dark/"
+
+    time_evol_txt = os.path.join(data_path, sim, f'{sim}_halo_time_evol.txt')
+    time_evol_data = load_subfind_ids(time_evol_txt)
+    subfind_ids = time_evol_data["subfind_ids"]
+    snaps = time_evol_data["snaps"]
     
-    filenames = "galaxies_halo_{}_tng50-3-dark_{}.hdf5"
-    
+    filenames = "galaxies_halo_{}_tng50-3-dark_{}"
+    figname = "galaxies_halo_{}_tng50-3-dark_evolution.png".format(str(subfind_ids[-1]))
+    datafile = os.path.join(data_path, filenames)
+    plot_evolution(datafile, snaps, subfind_ids, figname)
 
 if __name__ == "__main__":
-    
+    time_evolution_check_plot()
