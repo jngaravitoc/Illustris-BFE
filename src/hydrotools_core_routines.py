@@ -552,15 +552,23 @@ def get_halo_ids(sim: str, ncores: int = 1, ngalaxies: int = 1) -> None:
 
 
 
-def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmin, Mmax):
+def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file,
+Mmin, Mmax, ncores):
     save_halo_time_evolution(halo_subfind_ids_filename, 
                              sim, output_dir_time_evol_file,
                              Mmin, Mmax)
     time_evol_txt = os.path.join(output_dir_time_evol_file, f'{sim}_halo_time_evol.txt')
     time_evol_data = load_subfind_ids(time_evol_txt)
     subfind_ids = time_evol_data["subfind_ids"]
-    print(subfind_ids)
-    #extract_galaxy_from_subfind_id(sim, snap_idx=snap, subfind_id=subfind_ids, output_dir=, ncores=ncores)
+    nids = len(subfind_ids)
+    for i in range(nids):
+        print(subfind_ids[i])
+        extract_galaxy_from_subfind_id(
+            sim, 
+            snap_idx=snap, 
+            subfind_id=subfind_ids, 
+            output_dir=output_dir_time_evol_file,
+            ncores=ncores)
 
 
 #def plot_halo_evolution():
@@ -588,7 +596,8 @@ if __name__ == "__main__":
                 print(f"  [ERROR] Exception while processing {sim}: {e}")
 
     # Extract halo properties from subfind_ids
-    sim = sims[0]
-    filename = f"galaxies_{suffix}{sim}_099.hdf5"
-    out_hdf5_filename = os.path.join(args.output_path, filename)
+    sim = sims[-1]
+    com_sim_tag = "tng50-3-dark"
+    filename = f"galaxies{suffix}_{com_sim_tag}_099.hdf5"
+    out_hdf5_filename = os.path.join(args.output_path, sim, filename)
     get_halo_evol(sim, out_hdf5_filename, args.output_path, args.Mmin, args.Mmax)
