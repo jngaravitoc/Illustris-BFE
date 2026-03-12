@@ -1,9 +1,9 @@
-axes.titlesize : 24
-axes.labelsize : 20
-lines.linewidth : 2
+axes.titlesize : 16
+axes.labelsize : 14
+lines.linewidth : 1.8
 lines.markersize : 5
-xtick.labelsize : 16
-ytick.labelsize : 16
+xtick.labelsize : 14
+ytick.labelsize : 14
 text.usetex : True
 axes.formatter.use_mathtext : False
 
@@ -17,9 +17,9 @@ ytick.minor.right : True
 
 
 xtick.major.size : 6
-xtick.minor.size : 4
+xtick.minor.size : 3
 ytick.major.size : 6
-ytick.minor.size : 4
+ytick.minor.size : 3
 xtick.major.width : 1.1
 xtick.minor.width : 0.8
 ytick.major.width : 1.1

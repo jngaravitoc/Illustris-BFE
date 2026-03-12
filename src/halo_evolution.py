@@ -186,22 +186,22 @@ def plot_evolution(
         pos_com[i] = com_halo(datafile)
         m_200c[i] = mcrit200(datafile)
 
-    fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4))
 
-    fig.suptitle("Halo {} evolution".format(str(subfind_ids[-1])))
+    fig.suptitle("Halo {} evolution".format(str(subfind_ids[-1])), fontsize=16)
 
     ax[0].plot(snaps, np.linalg.norm(pos_com, axis=1))
     ax[0].set_xlabel("Snapshot")
-    ax[0].set_ylabel(r"$|\mathbf{r}_{\rm COM}|$ [kpc/$h$]")
-    ax[0].set_title("Centre-of-mass distance")
+    ax[0].set_ylabel(r"$r_{\rm COM}\ [{\rm kpc/h}]$")
+    ax[0].set_title("COM evolution (box coordinates)")
 
     ax[1].plot(snaps, m_200c)
     ax[1].set_xlabel("Snapshot")
-    ax[1].set_ylabel(r"$M_{200c}$ [$10^{10}\,M_\odot/h$]")
+    ax[1].set_ylabel(r"$\rm{M}_{200c}$ [$10^{10}\,\rm{M}_\odot/h$]")
     ax[1].set_title(r"$M_{200c}$ evolution")
 
 
-    fig.savefig(figname)
+    fig.savefig(figname, bbox_inches='tight')
     
 
 def plot_halo_particles(
