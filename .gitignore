@@ -6,6 +6,7 @@ __pycache__/
 *.hdf5
 *.h5
 *.gif
+*.code-workspace
 # C extensions
 *.so
 
