@@ -40,8 +40,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from pathlib import Path
 from typing import Optional
+
+import tempfile
+os.environ["MPLCONFIGDIR"] = tempfile.mkdtemp()
 
 import h5py
 import matplotlib.pyplot as plt
@@ -49,10 +53,15 @@ import numpy as np
 from matplotlib.colors import LogNorm
 from hydrotools_core_routines import load_subfind_ids
 
+# Project specific
 
+from config import FIGURES_PATH, DATA_PATH, TEMP_DATA_PATH
+# loading matplotlib custom mplstyle
+import plot_config
 # ---------------------------------------------------------------------------
 # Data helpers
 # ---------------------------------------------------------------------------
+
 
 def com_halo(datafile: str) -> np.ndarray:
     """Return the centre-of-mass position of the first group in *snap*.
@@ -173,13 +182,13 @@ def plot_evolution(
     pos_com = np.zeros((nsnaps, 3))
     m_200c = np.zeros(nsnaps)
     for i in range(nsnaps):
-        datafile = os.path.join(datafile_basename.format(subfind_ids[i], snaps[i]))
+        datafile = os.path.join(datafile_basename.format(subfind_ids[i][0],snaps[i]))
         pos_com[i] = com_halo(datafile)
         m_200c[i] = mcrit200(datafile)
 
     fig, ax = plt.subplots(1, 2, figsize=(8, 4))
 
-    fig.
+    fig.suptitle("Halo {} evolution".format(str(subfind_ids[-1])))
 
     ax[0].plot(snaps, np.linalg.norm(pos_com, axis=1))
     ax[0].set_xlabel("Snapshot")
@@ -405,17 +414,18 @@ def main() -> None:
         plt.show()
 
 def time_evolution_check_plot(sim):
-    data_path = "/n/nyx3/garavito/projects/Illustris-BFE/data/tng35-3-dark/"
+    data_path = "/n/nyx3/garavito/projects/Illustris-BFE/data/"
 
-    time_evol_txt = os.path.join(data_path, sim, f'{sim}_halo_time_evol.txt')
+    time_evol_txt = os.path.join(DATA_PATH, sim, f'{sim}_halo_time_evol.txt')
     time_evol_data = load_subfind_ids(time_evol_txt)
     subfind_ids = time_evol_data["subfind_ids"]
     snaps = time_evol_data["snaps"]
     
-    filenames = "galaxies_halo_{}_tng50-3-dark_{}"
-    figname = "galaxies_halo_{}_tng50-3-dark_evolution.png".format(str(subfind_ids[-1]))
-    datafile = os.path.join(data_path, filenames)
-    plot_evolution(datafile, snaps, subfind_ids, figname)
+    filenames = "galaxies_halo_{}_tng50-3-dark_{:03d}.hdf5"
+    figname = "galaxies_halo_{}_tng50-3-dark_evolution.png".format(str(subfind_ids[-1][0]))
+    datafile = os.path.join(data_path, sim, filenames)
+    plot_evolution(datafile, snaps[1:81], subfind_ids[1:81], os.path.join(FIGURES_PATH, figname))
 
 if __name__ == "__main__":
-    time_evolution_check_plot()
+    sim = "tng35-3-dark"
+    time_evolution_check_plot(sim)
