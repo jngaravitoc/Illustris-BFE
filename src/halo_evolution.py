@@ -369,49 +369,21 @@ def _infer_sim_name(datafile_template: str) -> str:
     return "halo"
 
 
-def main() -> None:
+def particle_density_plots(sim, snap_init, snap_final, subfind_id) -> None:
     """Entry point for the halo-evolution analysis script."""
-    args = parse_args()
+    #sim_name = args.sim_name if args.sim_name else _infer_sim_name(args.datafile)
+    filenames = "galaxies_halo_{subfind_id}_tng50-3-dark_{snap:03d}.hdf5"
 
-    sim_name = args.sim_name if args.sim_name else _infer_sim_name(args.datafile)
-
-    outdir = Path(args.outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    # Optionally apply EXPtools style if available
-    try:
-        import EXPtools
-        EXPtools.use_exptools_style(usetex=True)
-    except ImportError:
-        pass
-
-    # --- Figure 1: evolution plot (notebook code-cell 6) ---
-    fig_evo = plot_evolution(
-        args.datafile,
-        snap_start=args.snap_start,
-        nsnaps=args.nsnaps,
-    )
-    evo_path = outdir / f"{sim_name}_halo_evolution.png"
-    fig_evo.savefig(evo_path, dpi=150, bbox_inches="tight")
-    print(f"Saved evolution figure → {evo_path}")
-
-    # --- Figure 2: particle projections (notebook code-cell 9) ---
-    p_start = args.particle_snap_start if args.particle_snap_start is not None else args.snap_start
-    p_nsnaps = args.particle_nsnaps if args.particle_nsnaps is not None else args.nsnaps
-
-    for snap in range(p_start, p_start + p_nsnaps):
-        datafile = args.datafile.format(snap)
+    for snap in range(snap_init, snap_final):
+        datafile = os.path.join(DATA_PATH, sim, filenames.format(subfind_id=str(subfind_id), snap=snap))
         if not os.path.isfile(datafile):
             print(f"  [skip] {datafile} not found")
             continue
-        fig_part = plot_halo_particles(args.datafile, snap)
-        part_path = outdir / f"{sim_name}_halo_particles_{snap:03d}.png"
+        fig_part = plot_halo_particles(datafile, snap)
+        part_path = FIGURES_PATH / f"{sim}_halo_{subfind_id}_particles_{snap:03d}.png"
         fig_part.savefig(part_path, dpi=150, bbox_inches="tight")
         plt.close(fig_part)
         print(f"  Saved particle figure → {part_path}")
-
-    if not args.no_show:
-        plt.show()
 
 def time_evolution_check_plot(sim):
     data_path = "/n/nyx3/garavito/projects/Illustris-BFE/data/"
@@ -428,4 +400,5 @@ def time_evolution_check_plot(sim):
 
 if __name__ == "__main__":
     sim = "tng35-3-dark"
-    time_evolution_check_plot(sim)
+    #time_evolution_check_plot(sim)
+    particle_density_plots(sim, 1, 100, 21537)
