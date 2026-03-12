@@ -146,7 +146,8 @@ def extract_galaxy_from_subfind_id(
     subfind_id: int,
     suffix: str,
     output_dir: str,
-    ncores: int,) -> str:
+    ncores: int,
+    get_part_data: bool) -> str:
     """Run ``extractGalaxyData`` for one snapshot of the tracked halo.
 
     Parameters
@@ -171,6 +172,13 @@ def extract_galaxy_from_subfind_id(
         else common_fields.default_catsh_fields_all
     )
 
+    if get_part_data == True:
+        ptldm_fields = ['Coordinates', 'Velocities', 'oshs_Coordinates', 'fuzz_Coordinates']
+        ptl_rad = 1.5
+    else:
+        ptldm_fields = None
+        ptl_rad = None
+
     iface_run.extractGalaxyData(
         num_processes=ncores,
         machine_name='umdastro',
@@ -193,8 +201,12 @@ def extract_galaxy_from_subfind_id(
         catgrp_fields=common_fields.default_catgrp_fields_all,
         tree_get=True,
         tree_fields=['subfind_id', 'is_primary'],
-        ptldm_get=False,
+        ptldm_get=get_part_data,
+        ptldm_fields=ptldm_fields,
+        ptl_in_rad_get=get_part_data,
+        save_ptl_sep=get_part_data,
         ptl_rad_units='200m',
+        ptl_rad=ptl_rad,
         profile_get=False,
         profile_fields=[],
     )
@@ -555,7 +567,8 @@ def get_halo_ids(sim: str, ncores: int = 1, ngalaxies: int = 1) -> None:
 
     print("\nDone.")
 
-def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmin, Mmax, ncores):
+def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmin, Mmax,
+ncores, get_part_data=False):
     time_evol_txt = os.path.join(output_dir_time_evol_file, sim, f'{sim}_halo_time_evol.txt')
     check_file = os.path.isfile(time_evol_txt)
 
@@ -578,7 +591,8 @@ def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmi
             subfind_id=subfind_ids[i][0], 
             suffix=str(subfind_ids[-1][0]),
             output_dir=os.path.join(output_dir_time_evol_file, sim),
-            ncores=ncores)
+            ncores=ncores,
+            get_part_data=get_part_data)
         
 
 
@@ -616,7 +630,7 @@ if __name__ == "__main__":
     if os.path.isfile(out_hdf5_filename) == True:
         print(out_hdf5_filename, "found")
         print(args.output_path)
-        get_halo_evol(sim, out_hdf5_filename, str(args.output_path), args.Mmin, args.Mmax, ncores=1)
+        get_halo_evol(sim, out_hdf5_filename, str(args.output_path), args.Mmin, args.Mmax, ncores=20, get_part_data=True)
 
     else:
         print("File not found")
