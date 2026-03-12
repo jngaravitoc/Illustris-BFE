@@ -24,6 +24,7 @@ import h5py
 from hydrotools.core import interface as iface_run
 from hydrotools.common import fields as common_fields
 
+from pathlib import Path
 from config import DATA_PATH, TEMP_DATA_PATH
 # ---------------------------------------------------------------------------
 # Simulation catalogue
@@ -177,7 +178,7 @@ def extract_galaxy_from_subfind_id(
         snap_idx=snap_idx,
         no_snapshots=False,
         paranoid=True,
-        verbose=False,
+        verbose=True,
         mass_selection_type='idxs',
         sh_idxs=[subfind_id],
         output_path=output_dir,
@@ -569,13 +570,14 @@ def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmi
     nids = len(subfind_ids)
     for i in range(1, nids):
         print(subfind_ids[i][0], snaps[i])
+        print(str(subfind_ids[-1][0]))
         
         extract_galaxy_from_subfind_id(
             sim, 
             snap_idx=snaps[i], 
             subfind_id=subfind_ids[i][0], 
-            suffix=subfind_ids[-1][0],
-            output_dir=output_dir_time_evol_file,
+            suffix=str(subfind_ids[-1][0]),
+            output_dir=os.path.join(output_dir_time_evol_file, sim),
             ncores=ncores)
         
 
@@ -605,7 +607,16 @@ if __name__ == "__main__":
     """
     # Extract halo properties from subfind_ids
     sim = sims[-1]
+    
     com_sim_tag = "tng50-3-dark"
     filename = f"galaxies{suffix}_{com_sim_tag}_099.hdf5"
-    out_hdf5_filename = os.path.join(args.output_path, sim, filename)
-    get_halo_evol(sim, out_hdf5_filename, args.output_path, args.Mmin, args.Mmax, ncores=1)
+    out_hdf5_filename = os.path.join(str(args.output_path), sim, filename)
+    
+
+    if os.path.isfile(out_hdf5_filename) == True:
+        print(out_hdf5_filename, "found")
+        print(args.output_path)
+        get_halo_evol(sim, out_hdf5_filename, str(args.output_path), args.Mmin, args.Mmax, ncores=1)
+
+    else:
+        print("File not found")

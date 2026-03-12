@@ -182,13 +182,13 @@ def plot_evolution(
     pos_com = np.zeros((nsnaps, 3))
     m_200c = np.zeros(nsnaps)
     for i in range(nsnaps):
-        datafile = os.path.join(datafile_basename.format(subfind_ids[i][0],snaps[i]))
+        datafile = os.path.join(datafile_basename.format(subfind_ids[-1][0],snaps[i]))
         pos_com[i] = com_halo(datafile)
         m_200c[i] = mcrit200(datafile)
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
 
-    fig.suptitle("Halo {} evolution".format(str(subfind_ids[-1])), fontsize=16)
+    fig.suptitle("Halo {} evolution".format(str(subfind_ids[-1][0])), fontsize=16)
 
     ax[0].plot(snaps, np.linalg.norm(pos_com, axis=1))
     ax[0].set_xlabel("Snapshot")
@@ -424,7 +424,7 @@ def time_evolution_check_plot(sim):
     filenames = "galaxies_halo_{}_tng50-3-dark_{:03d}.hdf5"
     figname = "galaxies_halo_{}_tng50-3-dark_evolution.png".format(str(subfind_ids[-1][0]))
     datafile = os.path.join(data_path, sim, filenames)
-    plot_evolution(datafile, snaps[1:81], subfind_ids[1:81], os.path.join(FIGURES_PATH, figname))
+    plot_evolution(datafile, snaps[1:], subfind_ids[1:], os.path.join(FIGURES_PATH, figname))
 
 if __name__ == "__main__":
     sim = "tng35-3-dark"
