@@ -24,7 +24,7 @@ import h5py
 from hydrotools.core import interface as iface_run
 from hydrotools.common import fields as common_fields
 
-
+from config import DATA_PATH, TEMP_DATA_PATH
 # ---------------------------------------------------------------------------
 # Simulation catalogue
 # ---------------------------------------------------------------------------
@@ -123,8 +123,8 @@ def extract_halo_ids(sim: str, snap_idx: int, output_dir: str,
         catgrp_get=True,
         catgrp_fields=common_fields.default_catgrp_fields_all,
         tree_get=True,
-        # TODO: CHECK THE LINE BELLOW! 
-        tree_fields=['subfind_id', 'is_primary', 'SubhaloID', 'SubhaloPos'],
+        # TODO: CHECK THE LINE BELLOW! Subhalo_pos?
+        tree_fields=['subfind_id', 'is_primary', 'SubhaloID'],
         ptldm_get=False,
         ptl_in_rad_get=True,
         save_ptl_sep=False,
@@ -143,9 +143,9 @@ def extract_galaxy_from_subfind_id(
     sim: str,
     snap_idx: int,
     subfind_id: int,
+    suffix: str,
     output_dir: str,
-    ncores=12,
-) -> str:
+    ncores: int,) -> str:
     """Run ``extractGalaxyData`` for one snapshot of the tracked halo.
 
     Parameters
@@ -181,7 +181,7 @@ def extract_galaxy_from_subfind_id(
         mass_selection_type='idxs',
         sh_idxs=[subfind_id],
         output_path=output_dir,
-        file_suffix=f"_halo_{str(subfind_id)}",
+        file_suffix=f"_halo_{suffix}",
         buffered_output=False,
         output_compression='gzip',
         extract_satellites=True,
@@ -488,7 +488,7 @@ def parse_args() -> argparse.Namespace:
         description="Extract subfind IDs for MW-like halos across TNG suites.",
     )
     parser.add_argument(
-        '--output-path', type=str, default='/n/nyx3/garavito/projects/Illustris-BFE/data/',
+        '--output-path', type=str, default=DATA_PATH,
         help="Root output directory.  Per-sim data goes into <output_path>/data/<sim>/  (default: '.')",
     )
     parser.add_argument(
@@ -554,10 +554,7 @@ def get_halo_ids(sim: str, ncores: int = 1, ngalaxies: int = 1) -> None:
 
     print("\nDone.")
 
-
-
-def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file,
-Mmin, Mmax, ncores):
+def get_halo_evol(sim, halo_subfind_ids_filename, output_dir_time_evol_file, Mmin, Mmax, ncores):
     time_evol_txt = os.path.join(output_dir_time_evol_file, sim, f'{sim}_halo_time_evol.txt')
     check_file = os.path.isfile(time_evol_txt)
 
@@ -577,11 +574,11 @@ Mmin, Mmax, ncores):
             sim, 
             snap_idx=snaps[i], 
             subfind_id=subfind_ids[i][0], 
+            suffix=subfind_ids[-1][0],
             output_dir=output_dir_time_evol_file,
             ncores=ncores)
         
 
-#def plot_halo_evolution():
 
 if __name__ == "__main__":
     # check if data exists for given sim
@@ -594,7 +591,8 @@ if __name__ == "__main__":
     suffix = "_ngal_{:02d}".format(ngalaxies)
  
 
-    # Extract subfind ids
+    # Extract subfind_ids
+    """
     for sim in sims:
         sim_dir = os.path.join(args.output_path, sim)
 
@@ -604,10 +602,10 @@ if __name__ == "__main__":
                 get_halo_ids(sim)
             except Exception as e:
                 print(f"  [ERROR] Exception while processing {sim}: {e}")
-
+    """
     # Extract halo properties from subfind_ids
     sim = sims[-1]
     com_sim_tag = "tng50-3-dark"
     filename = f"galaxies{suffix}_{com_sim_tag}_099.hdf5"
     out_hdf5_filename = os.path.join(args.output_path, sim, filename)
-    get_halo_evol(sim, out_hdf5_filename, args.output_path, args.Mmin, args.Mmax, ncores=12)
+    get_halo_evol(sim, out_hdf5_filename, args.output_path, args.Mmin, args.Mmax, ncores=1)
