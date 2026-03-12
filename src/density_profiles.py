@@ -3,10 +3,11 @@ Compute density profiles and virial quantities from TNG dark halo particle catal
 
 Author: ChatGPT with the supporivsion of jngaravitoc
 """
-
+import os
 import numpy as np
 import h5py
 from scipy.interpolate import splrep, BSpline
+from config import DATA_PATH, TEMP_DATA_PATH
 
 # Colossus
 from colossus.cosmology import cosmology
@@ -149,21 +150,19 @@ def empirical_density_profile(rbins, pos, mass, smooth_length=0.0):
 # 5. WRITE OUTPUT HDF5
 # ============================================================
 
-def write_density_profile(outfile, radius, density, halo_id):
+def write_density_profile(outfile, radius, density, snap, rho_einasto=None):
     """
     Save density profile to HDF5 file.
-
-    Parameters
-    ----------
-    outfile : str
-    radius : ndarray
-    density : ndarray
-    halo_id : str
     """
+
     with h5py.File(outfile, 'w') as f:
-        grp = f.create_group(f"halo_{halo_id}")
+        grp = f.create_group("halo_{:03f}".format(snap))
         grp.create_dataset("radius_kpc", data=radius)
         grp.create_dataset("density_Msun_kpc3", data=density)
+
+        if rho_einasto is not None:
+            grp.create_dataset("einasto_density_Msun_kpc3", data=rho_einasto)
+
 
 
 # ============================================================
@@ -239,22 +238,9 @@ def build_einasto_profile(radius, Mvir, Rvir, cvir, redshift=0.0):
 # MAIN DRIVER
 # ============================================================
 
-def write_density_profile(outfile, radius, density, halo_id, rho_einasto=None):
-    """
-    Save density profile to HDF5 file.
-    """
-
-    with h5py.File(outfile, 'w') as f:
-        grp = f.create_group(f"halo_{halo_id}")
-        grp.create_dataset("radius_kpc", data=radius)
-        grp.create_dataset("density_Msun_kpc3", data=density)
-
-        if rho_einasto is not None:
-            grp.create_dataset("einasto_density_Msun_kpc3", data=rho_einasto)
 
 
-
-def process_halo(input_file, output_file, mass_tng):
+def process_halo(input_file, output_file, mass_tng, snap):
     """
     Full pipeline execution.
     """
@@ -272,19 +258,22 @@ def process_halo(input_file, output_file, mass_tng):
     radius, density = empirical_density_profile(rbins, coords, mass)
 
     # Save
-    write_density_profile(output_file, radius, density, halo_id)
+
+    write_density_profile(output_file, radius, density, snap)
 
     # Virial quantities
     Mvir, Rvir, cvir, c200c = compute_virial_quantities(M200c, R200c)
  	
     # Build Einasto halo
-    rho_einasto, einasto_params = build_einasto_profile(radius, Mvir, Rvir, cvir)
+    #rho_einasto, einasto_params = build_einasto_profile(radius, Mvir, Rvir, cvir)
 
     #
-    write_density_profile(output_file, radius, density, halo_id, rho_einasto)
-    ("\nEinasto parameters:")
-    for k,v in einasto_params.items():
-        print(f"{k} = {v}")
+    #write_density_profile(output_file, radius, density, snap, rho_einasto)
+
+    #print("\nEinasto parameters:")
+    
+    #for k,v in einasto_params.items():
+    #    print(f"{k} = {v}")
 
     print("\nHalo:", halo_id)
     print("M200c =", M200c)
@@ -293,19 +282,22 @@ def process_halo(input_file, output_file, mass_tng):
     print("Mvir =", Mvir)
     print("Rvir =", Rvir)
     print("cvir =", cvir)
-
+    
 
 # ============================================================
 # EXECUTION
 # ============================================================
 
 if __name__ == "__main__":
-
-    input_file = "../galaxies_tng50-3-dark_099.hdf5"
+    sim = "tng-35-3-dark"
+    halo_subfind_id = 21537
     output_file = "halo_density_profile.hdf5"
-
+    output_path = os.path.join(DATA_PATH, sim, output_file)
+    snap_basename = "galaxies_halo_{subfind_id}_tng50-3-dark_{snap}.hdf5"
+    snap = 99
+    input_snap = os.path.join(DATA_PATH, sim, 
+                              snap_basename.format(subfind_id=halo_subfind_id, snap=snap))
     # Example TNG50-3 DM particle mass (Msun)
     mass_tng = 4.8e8
-
-    process_halo(input_file, output_file, mass_tng)
+    process_halo(input_snap, output_path, mass_tng, snap=snap)
 
