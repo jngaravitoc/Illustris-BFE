@@ -1,6 +1,11 @@
-import matplotlib.pyplot as plt
+import h5py
+import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
+from matplotlib.cm import ScalarMappable
+
+
 
 def density_projections(p, R, lim=3000, vmax=1e4):
     """
@@ -65,3 +70,50 @@ def density_projections(p, R, lim=3000, vmax=1e4):
 
     return fig, ax
 
+
+def plot_density_profiles(filename):
+    """
+    Plots density profiles for all groups (snaps) in the HDF5 file.
+    - Left: radius vs log10(density)
+    - Right: radius vs density * radius^2
+    Each line color corresponds to the snap, with a colorbar.
+    """
+    with h5py.File(filename, 'r') as f:
+        groups = list(f.keys())
+        snaps = []
+        for g in groups:
+            # Extract snap number from group name, e.g., "halo_099"
+            try:
+                snap = int(''.join(filter(str.isdigit, g)))
+            except Exception:
+                snap = g
+            snaps.append(snap)
+
+        snaps = np.array(snaps)
+        norm = plt.Normalize(snaps.min(), snaps.max())
+        cmap = plt.get_cmap('viridis')
+        sm = ScalarMappable(norm=norm, cmap=cmap)
+
+        fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+        for g, snap in zip(groups, snaps):
+            grp = f[g]
+            radius = grp['radius_kpc'][:]
+            density = grp['density_Msun_kpc3'][:]
+            color = cmap(norm(snap))
+            label = f"Snap {snap}"
+            axs[0].plot(radius, np.log10(density), color=color, label=label)
+            axs[1].plot(radius, density * radius**2, color=color, label=label)
+
+        axs[0].set_xlabel('Radius [kpc]')
+        axs[0].set_ylabel('log10(Density) [Msun/kpc^3]')
+        axs[0].set_title('Density Profile')
+
+        axs[1].set_xlabel('Radius [kpc]')
+        axs[1].set_ylabel('Density × Radius$^2$ [Msun/kpc]')
+        axs[1].set_title('Density × Radius$^2$ Profile')
+
+        plt.tight_layout()
+        cbar = fig.colorbar(sm, ax=axs, orientation='vertical', fraction=0.03, pad=0.04)
+        cbar.set_label('Snap')
+        plt.show()
