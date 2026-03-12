@@ -289,15 +289,16 @@ def process_halo(input_file, output_file, mass_tng, snap):
 # ============================================================
 
 if __name__ == "__main__":
-    sim = "tng-35-3-dark"
+    sim = "tng35-3-dark"
     halo_subfind_id = 21537
-    output_file = "halo_density_profile.hdf5"
+    output_file = f"halo_{21537}_density_profiles.hdf5"
     output_path = os.path.join(DATA_PATH, sim, output_file)
-    snap_basename = "galaxies_halo_{subfind_id}_tng50-3-dark_{snap}.hdf5"
-    snap = 99
-    input_snap = os.path.join(DATA_PATH, sim, 
-                              snap_basename.format(subfind_id=halo_subfind_id, snap=snap))
+    snap_basename = "galaxies_halo_{subfind_id}_tng50-3-dark_{snap:03d}.hdf5"
+    
     # Example TNG50-3 DM particle mass (Msun)
     mass_tng = 4.8e8
-    process_halo(input_snap, output_path, mass_tng, snap=snap)
+    for snap in range(2, 100):
+        input_snap = os.path.join(DATA_PATH, sim, 
+                                  snap_basename.format(subfind_id=halo_subfind_id, snap=snap))
+        process_halo(input_snap, output_path, mass_tng, snap=snap)
 
