@@ -1,3 +1,4 @@
-[] Check particle mass table
-[] Compute density profile for host particles and host+fuzz
-[] Fit density profiles
+- Check particle mass table
+- Compute density profile for host particles and host+fuzz
+- Plot time-evolving normalized density profile
+- Fit density profiles
