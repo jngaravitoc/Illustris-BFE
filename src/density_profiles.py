@@ -155,8 +155,11 @@ def write_density_profile(outfile, radius, density, snap, rho_einasto=None):
     Save density profile to HDF5 file.
     """
 
-    with h5py.File(outfile, 'w') as f:
-        grp = f.create_group("halo_{:03f}".format(snap))
+    with h5py.File(outfile, 'a') as f:
+        group_name = "halo_{:03d}".format(snap)
+        if group_name in f:
+            del f[group_name]
+        grp = f.create_group(group_name)
         grp.create_dataset("radius_kpc", data=radius)
         grp.create_dataset("density_Msun_kpc3", data=density)
 
