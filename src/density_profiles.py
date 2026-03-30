@@ -285,6 +285,18 @@ def process_halo(input_file, output_file, mass_tng, snap):
     print("Mvir =", Mvir)
     print("Rvir =", Rvir)
     print("cvir =", cvir)
+
+    halo_params = {
+        'M200c': M200c,
+        'R200c': R200c,
+        'c200c': c200c,
+        'Mvir': Mvir,
+        'Rvir': Rvir,
+        'cvir': cvir
+    }
+    return halo_params
+
+ 
     
 
 # ============================================================
@@ -300,8 +312,20 @@ if __name__ == "__main__":
     
     # Example TNG50-3 DM particle mass (Msun)
     mass_tng = 4.8e8
-    for snap in range(2, 100):
+    halo_params_list = []
+    snaps = list(range(2, 100))
+
+    for snap in snaps:
         input_snap = os.path.join(DATA_PATH, sim, 
                                   snap_basename.format(subfind_id=halo_subfind_id, snap=snap))
-        process_halo(input_snap, output_path, mass_tng, snap=snap)
+        params = process_halo(input_snap, output_path, mass_tng, snap=snap)
+        params['snap'] = snap
+        halo_params_list.append(params)
+
+    # Save all halo_params to an HDF5 file
+    halo_params_h5 = os.path.join(DATA_PATH, sim, f"halo_{halo_subfind_id}_params.hdf5")
+    
+    with h5py.File(halo_params_h5, 'w') as f:
+        for key in ['M200c', 'R200c', 'c200c', 'Mvir', 'Rvir', 'cvir', 'snap']:
+            f.create_dataset(key, data=[d[key] for d in halo_params_list])
 

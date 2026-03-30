@@ -71,12 +71,13 @@ def density_projections(p, R, lim=3000, vmax=1e4):
     return fig, ax
 
 
-def plot_density_profiles(filename):
+def plot_density_profiles(filename, output_png=None):
     """
     Plots density profiles for all groups (snaps) in the HDF5 file.
     - Left: radius vs log10(density)
     - Right: radius vs density * radius^2
     Each line color corresponds to the snap, with a colorbar.
+    If output_png is provided, saves the figure to that file.
     """
     with h5py.File(filename, 'r') as f:
         groups = list(f.keys())
@@ -116,4 +117,14 @@ def plot_density_profiles(filename):
         plt.tight_layout()
         cbar = fig.colorbar(sm, ax=axs, orientation='vertical', fraction=0.03, pad=0.04)
         cbar.set_label('Snap')
+        if output_png:
+            plt.savefig(output_png, dpi=200)
         plt.show()
+
+def main():
+    data_file = "../data/tng35-3-dark/halo_21537_density_profiles.hdf5"
+    output_png = "halo_21537_density_profiles.png"
+    plot_density_profiles(data_file, output_png=output_png)
+
+if __name__ == "__main__":
+    main()
