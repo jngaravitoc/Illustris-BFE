@@ -167,6 +167,31 @@ def write_density_profile(outfile, radius, density, snap, rho_einasto=None):
             grp.create_dataset("einasto_density_Msun_kpc3", data=rho_einasto)
 
 
+def read_density_profile(filename, snap):
+    """
+    Read density profile from HDF5 file written by write_density_profile.
+
+    Parameters
+    ----------
+    filename : str
+        Path to HDF5 file.
+    snap : int or float
+        Snapshot number used in the group name.
+
+    Returns
+    -------
+    radius : ndarray
+        Array of radii [kpc].
+    density : ndarray
+        Array of densities [Msun/kpc^3].
+    """
+    group_name = f"halo_{snap:03d}"
+    with h5py.File(filename, 'r') as f:
+        grp = f[group_name]
+        radius = grp["radius_kpc"][:]
+        density = grp["density_Msun_kpc3"][:]
+    return radius, density
+
 
 # ============================================================
 # 6. VIRIAL QUANTITIES (COLOSSUS)
