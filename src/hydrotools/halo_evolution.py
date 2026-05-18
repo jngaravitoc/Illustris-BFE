@@ -401,4 +401,5 @@ def time_evolution_check_plot(sim):
 if __name__ == "__main__":
     sim = "tng35-3-dark"
     #time_evolution_check_plot(sim)
-    particle_density_plots(sim, 1, 100, 21537)
+    halo_id = 21537
+    particle_density_plots(sim, 1, 100, halo_id)

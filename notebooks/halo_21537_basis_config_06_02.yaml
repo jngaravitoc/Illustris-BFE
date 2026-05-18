@@ -1,0 +1,10 @@
+id: sphereSL
+parameters:
+  numr: 2000
+  rmin: 0.0056672496786960335
+  rmax: 2.242836995489568
+  Lmax: 2
+  nmax: 6
+  rmapping: 1.0
+  modelname: halo_21537_model.txt
+  cachename: halo_21537_basis_cache_06_02.txt

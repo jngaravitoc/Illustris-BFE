@@ -1,0 +1,10 @@
+id: sphereSL
+parameters:
+  numr: 2000
+  rmin: 0.0056672496786960335
+  rmax: 2.242836995489568
+  Lmax: 2
+  nmax: 8
+  rmapping: 1.0
+  modelname: /home/ngc/Work/research/Illustris-BFE/src/_basis_tmp/basis_model.txt
+  cachename: /home/ngc/Work/research/Illustris-BFE/src/_basis_tmp/basis_cache_08_02.txt

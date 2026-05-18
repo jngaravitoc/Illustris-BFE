@@ -146,11 +146,12 @@ def empirical_density_profile(rbins, pos, mass, smooth_length=0.0):
     return radius, density
 
 
+
 # ============================================================
 # 5. WRITE OUTPUT HDF5
 # ============================================================
 
-def write_density_profile(outfile, radius, density, snap, rho_einasto=None):
+def write_density_profile(outfile, radius, density, snap, rho_einasto=None, extra_density_label=None):
     """
     Save density profile to HDF5 file.
     """
@@ -163,34 +164,11 @@ def write_density_profile(outfile, radius, density, snap, rho_einasto=None):
         grp.create_dataset("radius_kpc", data=radius)
         grp.create_dataset("density_Msun_kpc3", data=density)
 
+        if extra_density_label is not None:
+            grp.create_dataset(f"{extra_density_label}_Msun_kpc3", data=density)
+
         if rho_einasto is not None:
             grp.create_dataset("einasto_density_Msun_kpc3", data=rho_einasto)
-
-
-def read_density_profile(filename, snap):
-    """
-    Read density profile from HDF5 file written by write_density_profile.
-
-    Parameters
-    ----------
-    filename : str
-        Path to HDF5 file.
-    snap : int or float
-        Snapshot number used in the group name.
-
-    Returns
-    -------
-    radius : ndarray
-        Array of radii [kpc].
-    density : ndarray
-        Array of densities [Msun/kpc^3].
-    """
-    group_name = f"halo_{snap:03d}"
-    with h5py.File(filename, 'r') as f:
-        grp = f[group_name]
-        radius = grp["radius_kpc"][:]
-        density = grp["density_Msun_kpc3"][:]
-    return radius, density
 
 
 # ============================================================
@@ -268,7 +246,7 @@ def build_einasto_profile(radius, Mvir, Rvir, cvir, redshift=0.0):
 
 
 
-def process_halo(input_file, output_file, mass_tng, snap):
+def process_halo(input_file, output_file, mass_tng, snap, nsample=1):
     """
     Full pipeline execution.
     """
@@ -282,12 +260,49 @@ def process_halo(input_file, output_file, mass_tng, snap):
     # Bins
     rbins, _, _ = build_radial_bins(coords)
 
-    # Density profile
-    radius, density = empirical_density_profile(rbins, coords, mass)
+    if nsample < 1:
+        raise ValueError("nsample must be at least 1")
+
+    if nsample == 1:
+        # Use the halo particles as provided.
+        radius, mean_density = empirical_density_profile(rbins, coords, mass)
+    else:
+        rng = np.random.default_rng()
+        density_profiles = []
+        subset_fraction = 0.5
+        radii = np.sqrt(np.sum(coords**2, axis=1))
+        shell_index = np.digitize(radii, rbins) - 1
+        shell_index = np.clip(shell_index, 0, len(rbins) - 2)
+
+        # Radial-stratified subsamples preserve shell mass in expectation and reduce profile noise.
+        for _ in range(nsample):
+            sampled_coords_parts = []
+            sampled_mass_parts = []
+
+            for ibin in range(len(rbins) - 1):
+                shell_particles = np.where(shell_index == ibin)[0]
+                n_shell = len(shell_particles)
+                if n_shell == 0:
+                    continue
+
+                n_take = max(1, int(np.ceil(subset_fraction * n_shell)))
+                chosen = rng.choice(shell_particles, size=n_take, replace=False)
+                shell_mass_factor = n_shell / n_take
+
+                sampled_coords_parts.append(coords[chosen])
+                sampled_mass_parts.append(np.full(n_take, mass_tng * shell_mass_factor))
+
+            sampled_coords = np.concatenate(sampled_coords_parts, axis=0)
+            sampled_mass = np.concatenate(sampled_mass_parts, axis=0)
+            radius, density = empirical_density_profile(rbins, sampled_coords, sampled_mass)
+            density_profiles.append(density)
+
+        # Median across realizations is more robust to noisy outlier bins than a mean.
+        mean_density = np.median(np.stack(density_profiles, axis=0), axis=0)
 
     # Save
 
-    write_density_profile(output_file, radius, density, snap)
+    write_density_profile(output_file, radius, mean_density, snap, extra_density_label="mean_density" if nsample > 1 else None)
 
     # Virial quantities
     Mvir, Rvir, cvir, c200c = compute_virial_quantities(M200c, R200c)
@@ -331,19 +346,21 @@ def process_halo(input_file, output_file, mass_tng, snap):
 if __name__ == "__main__":
     sim = "tng35-3-dark"
     halo_subfind_id = 21537
+    Nsample = 1000
     output_file = f"halo_{21537}_density_profiles.hdf5"
     output_path = os.path.join(DATA_PATH, sim, output_file)
     snap_basename = "galaxies_halo_{subfind_id}_tng50-3-dark_{snap:03d}.hdf5"
     
     # Example TNG50-3 DM particle mass (Msun)
-    mass_tng = 4.8e8
+    mass_tng = 2.33443590182933*1e7
+
     halo_params_list = []
     snaps = list(range(2, 100))
 
     for snap in snaps:
         input_snap = os.path.join(DATA_PATH, sim, 
                                   snap_basename.format(subfind_id=halo_subfind_id, snap=snap))
-        params = process_halo(input_snap, output_path, mass_tng, snap=snap)
+        params = process_halo(input_snap, output_path, mass_tng, snap=snap, nsample=Nsample)
         params['snap'] = snap
         halo_params_list.append(params)
 

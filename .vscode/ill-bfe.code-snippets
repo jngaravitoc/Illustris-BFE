@@ -1,0 +1,15 @@
+"ill-bfe imports": {
+    "prefix": "ill-bfe",
+    "body": [
+        "%matplotlib inline",
+        "import matplotlib.pyplot as plt",
+        "import matplotlib as mpl",
+        "import numpy as np",
+        "import h5py",
+        "import sys",
+        "sys.path.append('../src/')",
+        "import plot_config",
+        "from config import DATA_PATH, TEMP_DATA_PATH, FIGURES_PATH"
+    ],
+    "description": "Standard ill-bfe imports"
+}

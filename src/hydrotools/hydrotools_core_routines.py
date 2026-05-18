@@ -596,6 +596,8 @@ ncores, get_part_data=False):
         
 
 
+
+
 if __name__ == "__main__":
     # check if data exists for given sim
     # if not run get_halo_ids
@@ -631,6 +633,6 @@ if __name__ == "__main__":
         print(out_hdf5_filename, "found")
         print(args.output_path)
         get_halo_evol(sim, out_hdf5_filename, str(args.output_path), args.Mmin, args.Mmax, ncores=20, get_part_data=True)
-
+        write_complementary_fields(sim)
     else:
         print("File not found")
