@@ -7,17 +7,17 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 PYTHON_BIN_DEFAULT="/home/ngc/Work/research/codes/environments/pyexp310/bin/python"
 PYTHON_BIN="${PYTHON_BIN:-$PYTHON_BIN_DEFAULT}"
 
-MODE="${1:-smoke}"
+MODE="${1:-lite}"
 
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [mode]
 
 Modes:
-  smoke       Run basis test + coefficient smoke test (default)
+  lite        Run basis test + coefficient lite test (default)
   full        Run basis test + full coefficient comparison test
   basis       Run only basis test
-  coeff-smoke Run only coefficient smoke test
+  coeff-lite  Run only coefficient lite test
   coeff-full  Run only full coefficient comparison test
 
 Env vars:
@@ -35,11 +35,11 @@ run_basis_test() {
   "$PYTHON_BIN" "$REPO_ROOT/src/tests/test_basis.py"
 }
 
-run_coeff_smoke() {
-  echo "[run] coefficients smoke test"
+run_coeff_lite() {
+  echo "[run] coefficients lite test"
   (
     cd "$REPO_ROOT/src/tests"
-    ILLUSTRIS_BFE_COEFS_TEST_MODE=smoke "$PYTHON_BIN" test_coefficients_computation.py
+    ILLUSTRIS_BFE_COEFS_TEST_MODE=lite "$PYTHON_BIN" test_coefficients_computation.py
   )
 }
 
@@ -57,9 +57,9 @@ if [[ "$MODE" == "-h" || "$MODE" == "--help" ]]; then
 fi
 
 case "$MODE" in
-  smoke)
+  lite)
     run_basis_test
-    run_coeff_smoke
+    run_coeff_lite
     ;;
   full)
     run_basis_test
@@ -68,8 +68,8 @@ case "$MODE" in
   basis)
     run_basis_test
     ;;
-  coeff-smoke)
-    run_coeff_smoke
+  coeff-lite)
+    run_coeff_lite
     ;;
   coeff-full)
     run_coeff_full
