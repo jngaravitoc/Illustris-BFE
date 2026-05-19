@@ -58,11 +58,18 @@ def load_basis_from_config_file(basis_config_file: str) -> object:
     basis : pyEXP.basis.Basis
         The loaded basis object.
     """
-    print(f"Loading basis from {basis_config_file}...")
+    config_path = Path(basis_config_file).resolve()
+    print(f"Loading basis from {config_path}...")
     # pyEXP expects YAML config content here, not a file path.
-    with open(basis_config_file, "r", encoding="utf-8") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         basis_yaml = f.read()
-    basis = pyEXP.basis.Basis.factory(basis_yaml)
+    # Resolve relative model/cache filenames from the YAML directory.
+    cwd = Path.cwd()
+    try:
+        os.chdir(config_path.parent)
+        basis = pyEXP.basis.Basis.factory(basis_yaml)
+    finally:
+        os.chdir(cwd)
     print(f"  Basis type: {type(basis).__name__}")
     return basis
 
@@ -102,6 +109,7 @@ def compute_coefficients_for_snapshots(
     halo_id: int = 21537,
     sim: str = "tng35-3-dark",
     coefs_filename: str | None = None,
+    output_dir: Path | None = None,
 ) -> Path:
     """
     Compute and save coefficients for specified snapshots.
@@ -126,6 +134,8 @@ def compute_coefficients_for_snapshots(
         Simulation name (default: "tng35-3-dark").
     coefs_filename : str, optional
         Output coefficients filename. If None, uses coefficients_{nmax}_{lmax}.h5.
+    output_dir : Path, optional
+        Directory to write the coefficients file. Defaults to COEFS_OUTPUT_DIR.
 
     Returns
     -------
@@ -134,7 +144,8 @@ def compute_coefficients_for_snapshots(
     """
     
     # Create output directory
-    COEFS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(output_dir) if output_dir is not None else COEFS_OUTPUT_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
     
     basis = load_basis_from_config_file(basis_config_file)
     
@@ -176,7 +187,7 @@ def compute_coefficients_for_snapshots(
     # Output file for coefficients
     if coefs_filename is None:
         coefs_filename = f"coefficients_{nmax:02d}_{lmax:02d}.h5"
-    coefs_file = COEFS_OUTPUT_DIR / coefs_filename
+    coefs_file = out_dir / coefs_filename
 
     # Ensure each run starts from a clean output file.
     if coefs_file.exists():
