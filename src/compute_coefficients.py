@@ -168,21 +168,11 @@ def compute_coefficients_for_snapshots(
     c200c = halo_params['c200c']
     rho200c = halo_params['M200c'] / (4/3. * np.pi * halo_params['R200c']**3)
 
-    # Build z_halo from the same time-evolution table used in the notebook.
-    time_evol_file = os.path.join(data_dir, f"{sim}_halo_time_evol.txt")
-    if not os.path.isfile(time_evol_file):
-        raise FileNotFoundError(
-            f"Missing time-evolution file required for z_halo mapping: {time_evol_file}"
-        )
-
-    sim_snap, sim_z, sim_t, _ = np.loadtxt(time_evol_file, skiprows=4, unpack=True)
-    
     # Create snapshot lookup dicts
     snap_arr = np.asarray(all_snaps, dtype=int)
     R200c_dict = {int(s): float(v) for s, v in zip(snap_arr, R200c)}
     rho200c_dict = {int(s): float(v) for s, v in zip(snap_arr, rho200c)}
     M200c_dict = {int(s): float(v) for s, v in zip(snap_arr, M200c)}
-    z_halo = {int(s): float(v) for s, v in zip(np.asarray(sim_snap, dtype=int), sim_z)}
     
     # Output file for coefficients
     if coefs_filename is None:
@@ -225,10 +215,12 @@ def compute_coefficients_for_snapshots(
         }
         
         # Compute coefficients
+        # The snapshot number is used as the time key so that coefs.Times()
+        # returns plain snapshot numbers rather than redshifts.
         try:
             compute_exp_coefs(
                 halo_data=halo_data,
-                snap_time=z_halo[int(snap)],
+                snap_time=float(snap),
                 basis=basis,
                 component='halo',
                 coefs_file=str(coefs_file),
