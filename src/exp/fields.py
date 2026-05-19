@@ -10,7 +10,7 @@ def bfe_density_profiles(
     phi_bins=40,
     time=0.0,
     field="dens",
-    statistic="median",
+    statistic="weighted_mean",
 ):
     """
     Compute a spherically averaged density profile from a BFE by
@@ -24,15 +24,16 @@ def bfe_density_profiles(
     r_bins : array-like
         Radial bin centers at which the density is evaluated.
     theta_bins : int, optional
-        Number of azimuthal samples.
-    phi_bins : int, optional
         Number of polar samples.
+    phi_bins : int, optional
+        Number of azimuthal samples.
     time : float, optional
         Snapshot time.
     field : str, optional
         Field name to extract (default: 'dens').
-    statistic : {'mean', 'median'}, optional
-        Angular statistic to compute at each radius.
+    statistic : {'mean', 'median', 'weighted_mean'}, optional
+        Angular statistic to compute at each radius. 'weighted_mean' uses
+        sin(theta) weighting to approximate a true spherical average.
 
     Returns
     -------
@@ -68,11 +69,16 @@ def bfe_density_profiles(
     nr = len(r_bins)
     dens = dens.reshape(nr, -1)
 
-    if statistic == "mean":
+    if statistic == "weighted_mean":
+        theta = np.linspace(0.0, np.pi, theta_bins)
+        weights = np.sin(theta)[:, None] * np.ones((1, phi_bins))
+        weights = weights.reshape(-1)
+        profile = np.sum(dens * weights[None, :], axis=1) / np.sum(weights)
+    elif statistic == "mean":
         profile = np.mean(dens, axis=1)
     elif statistic == "median":
         profile = np.median(dens, axis=1)
     else:
-        raise ValueError("statistic must be 'mean' or 'median'")
+        raise ValueError("statistic must be 'weighted_mean', 'mean', or 'median'")
 
     return profile

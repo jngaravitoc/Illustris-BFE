@@ -28,13 +28,20 @@ import h5py
 # Add sibling directories to path
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _THIS_DIR)
+sys.path.insert(0, os.path.join(_THIS_DIR, "..", "visuals"))
 sys.path.append(os.path.join(_THIS_DIR, "../exp_pipeline/"))
 
 from field_projections import FieldProjections
-from field_io import (
-    write_kde_density,
-    merge_kde_density_files,
-)
+try:
+    from field_io import (
+        write_kde_density,
+        merge_kde_density_files,
+    )
+except ModuleNotFoundError:
+    from visuals.field_io import (
+        write_kde_density,
+        merge_kde_density_files,
+    )
 #from ios_nbody_sims import load_particle_data
 #from compute_bfe_helpers import load_sheng24_exp_center
 #from basis_utils import load_basis

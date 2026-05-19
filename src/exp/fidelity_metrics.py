@@ -150,7 +150,7 @@ def projected_map(pos, q, axis="z", bins=100, range=None):
     ----------
     pos : (N, 3) array
         Cartesian positions of particles.
-    q : (N,) array
+    q : (N,) arraycoefs.CompareStanzas(coefs)
         Scalar values (e.g., density) to average inside each bin.
     axis : {"x","y","z"}, optional
         Axis along which to project the distribution. 
