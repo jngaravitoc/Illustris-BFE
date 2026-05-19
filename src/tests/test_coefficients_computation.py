@@ -9,7 +9,7 @@ import sys
 import pyEXP
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = REPO_ROOT / "src/tests/data"
+DATA_DIR = REPO_ROOT / "src" / "tests" / "data"
 SRC_DIR = REPO_ROOT / "src"
 TESTS_OUTPUT_DIR = Path(__file__).resolve().parent / "_temp_tests_outputs"
 
@@ -25,8 +25,8 @@ def test_compute_coefficients(nmax: int = 8, lmax: int = 2) -> None:
     """Smoke test for direct API usage of compute_coefficients_for_snapshots."""
 
     basis_config = DATA_DIR / f"halo_21537_basis_config_{nmax:02d}_{lmax:02d}.yaml"
-    halo_params = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537_params.hdf5"
-    data_dir = REPO_ROOT / "data" / "tng35-3-dark"
+    halo_params = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "halo_21537_params.hdf5"
+    data_dir = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "particle_data"
 
     assert basis_config.exists(), f"Missing basis config: {basis_config}"
     assert halo_params.exists(), f"Missing halo params file: {halo_params}"

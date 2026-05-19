@@ -35,9 +35,8 @@ def test_density_profiles_two_snapshots(nmax: int = 8, lmax: int = 2) -> None:
     tests_dir = Path(__file__).resolve().parent
     basis_config = DATA_DIR / f"halo_21537_basis_config_{nmax:02d}_{lmax:02d}.yaml"
     coefs_file = tests_dir / f"data/halo_21537_coefficients_{nmax:02d}_{lmax:02d}.h5"
-    halo_params = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537_params.hdf5"
-    data_dir = REPO_ROOT / "data" / "tng35-3-dark"
-    density_filename = data_dir / "halo_21537_density_profiles.hdf5"
+    halo_params = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "halo_21537_params.hdf5"
+    density_filename = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "profiles" / "halo_21537_density_profiles.hdf5"
     
     assert basis_config.exists(), f"Missing basis config: {basis_config}"
     assert coefs_file.exists(), f"Missing coefficients file: {coefs_file}"

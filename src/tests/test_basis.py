@@ -19,7 +19,7 @@ from basis_helpers import compute_basis
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "src/tests/data"
 NOTEBOOKS_DIR = REPO_ROOT / "notebooks"
-TMP_BASIS_DIR = Path(__file__).resolve().parent / "_basis_tmp"
+TMP_BASIS_DIR = Path(__file__).resolve().parent / "_temp_tests_outputs"
 TEST_NMAX = 8
 TEST_LMAX = 2
 

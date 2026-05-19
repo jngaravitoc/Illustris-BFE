@@ -49,7 +49,7 @@ def test_kde_and_bfe_fields_match_reference(nmax: int = 8, lmax: int = 2) -> Non
 
     basis_config = DATA_DIR / f"halo_21537_basis_config_{nmax:02d}_{lmax:02d}.yaml"
     coefs_file = DATA_DIR / f"halo_21537_coefficients_{nmax:02d}_{lmax:02d}.h5"
-    halo_params_file = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537_params.hdf5"
+    halo_params_file = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "halo_21537_params.hdf5"
 
     assert basis_config.exists(), f"Missing basis config: {basis_config}"
     assert coefs_file.exists(), f"Missing coefficients file: {coefs_file}"
@@ -81,6 +81,8 @@ def test_kde_and_bfe_fields_match_reference(nmax: int = 8, lmax: int = 2) -> Non
             REPO_ROOT
             / "data"
             / sim
+            / f"halo_{halo_subfind_id}"
+            / "particle_data"
             / snap_basename.format(subfind_id=halo_subfind_id, snap=snap)
         )
 
@@ -108,4 +110,4 @@ def test_kde_and_bfe_fields_match_reference(nmax: int = 8, lmax: int = 2) -> Non
 
 if __name__ == "__main__":
     test_kde_and_bfe_fields_match_reference()
-    print("Field regression test passed.")
+    print("Field computations tests passed.")
