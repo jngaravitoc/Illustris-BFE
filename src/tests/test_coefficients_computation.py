@@ -11,6 +11,7 @@ import pyEXP
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "src/tests/data"
 SRC_DIR = REPO_ROOT / "src"
+TESTS_OUTPUT_DIR = Path(__file__).resolve().parent / "_temp_tests_outputs"
 
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
@@ -40,7 +41,8 @@ def test_compute_coefficients(nmax: int = 8, lmax: int = 2) -> None:
         snapshots = snapshots[::10]
 
     output_name = f"test_smoke_halo_21537_coefficients_{nmax:02d}_{lmax:02d}.h5"
-    output_path = REPO_ROOT / "_coefs_tmp" / output_name
+    TESTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = TESTS_OUTPUT_DIR / output_name
     if output_path.exists():
         output_path.unlink()
 
@@ -52,6 +54,7 @@ def test_compute_coefficients(nmax: int = 8, lmax: int = 2) -> None:
         nmax=nmax,
         lmax=lmax,
         coefs_filename=output_name,
+        output_dir=TESTS_OUTPUT_DIR,
     )
 
     assert coefs_file == output_path

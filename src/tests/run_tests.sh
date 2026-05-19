@@ -19,6 +19,7 @@ Modes:
   basis       Run only basis test
   coeff-lite  Run only coefficient lite test
   coeff-full  Run only full coefficient comparison test
+  profile     Run only exo/exp density profile test
 
 Env vars:
   PYTHON_BIN  Override Python interpreter (default: $PYTHON_BIN_DEFAULT)
@@ -51,6 +52,18 @@ run_coeff_full() {
   )
 }
 
+run_exo_density_profile_test() {
+  echo "[run] exo/exp density profile test"
+  (
+    cd "$REPO_ROOT/src/tests"
+    if [[ -f test_exo_density_profile.py ]]; then
+      "$PYTHON_BIN" test_exo_density_profile.py
+    else
+      "$PYTHON_BIN" test_exp_density_profiles.py
+    fi
+  )
+}
+
 if [[ "$MODE" == "-h" || "$MODE" == "--help" ]]; then
   usage
   exit 0
@@ -73,6 +86,9 @@ case "$MODE" in
     ;;
   coeff-full)
     run_coeff_full
+    ;;
+  profile|exp-density)
+    run_exo_density_profile_test
     ;;
   *)
     echo "Unknown mode: $MODE" >&2
