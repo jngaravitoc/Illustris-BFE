@@ -15,36 +15,10 @@ SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from compute_coefficients import run_compute_coefficients_cli, compute_coefficients_for_snapshots
-from exp.data_ios import read_halo_params  
-
+from compute_coefficients import compute_coefficients_for_snapshots
+from exp.data_ios import read_halo_params
 
 TEST_MODE_ENV = "ILLUSTRIS_BFE_COEFS_TEST_MODE"
-
-
-def _print_basis_yaml_debug(basis_config: Path) -> None:
-    """Print a short debug preview of the basis YAML used by this test."""
-
-    print(f"[debug] basis config path: {basis_config}")
-    with open(basis_config, "r", encoding="utf-8") as f:
-        first_lines = [next(f, "").rstrip("\n") for _ in range(6)]
-    print("[debug] basis config first lines:")
-    for line in first_lines:
-        print(f"[debug]   {line}")
-
-def _compare_stanzas(coefs_obj, coefs_tests) -> None:
-    """Compare pyEXP coefficient stanzas, supporting known method-name variants."""
-
-    compare_fn = getattr(coefs_obj, "CompareStraznas", None)
-    if compare_fn is None:
-        compare_fn = getattr(coefs_obj, "CompareStanzas", None)
-    if compare_fn is None:
-        raise AttributeError("pyEXP Coefs object has no stanza-compare method")
-
-    result = compare_fn(coefs_tests)
-    if isinstance(result, bool):
-        assert result, "Coefficient stanza comparison returned False"
-
 
 def test_compute_coefficients(nmax: int = 8, lmax: int = 2) -> None:
     """Smoke test for direct API usage of compute_coefficients_for_snapshots."""
