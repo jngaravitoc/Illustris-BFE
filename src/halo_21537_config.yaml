@@ -1,0 +1,48 @@
+# Pipeline configuration for halo 21537 (TNG35-3-dark, nmax=8, lmax=2)
+# -----------------------------------------------------------------------
+# Load this file with:
+#   from analysis.pipeline_config import PipelineConfig
+#   config = PipelineConfig.from_yaml("src/analysis/example_config.yaml")
+
+# --- Simulation and halo identification ---
+simulation: tng35-3-dark
+halo_id: 21537
+
+# --- BFE expansion parameters ---
+nmax: 16 
+lmax: 12
+
+# --- Snapshots to process (TNG snapshot numbers) ---
+# Use a list for a specific subset, or the special value "all" to automatically
+# discover every snapshot that has a particle file on disk.
+snapshots: [17, 21, 25, 33, 50, 99]
+# snapshots: all
+
+# --- Density-field grid parameters (units: R200c) ---
+grid_range: [-1.1, 1.1]
+grid_bins: 50
+
+# --- Stages to run (set to false to skip a stage) ---
+stages:
+  profiles: true        # Stage 1: load / compute density profiles
+  basis: true           # Stage 2: compute basis from profile fit
+  coefficients: true    # Stage 3: compute BFE coefficients from particles
+  fields: true          # Stage 4: compute BFE and KDE density fields
+  metrics: true         # Stage 5: compute MISE/MIRSE and generate figures
+
+# --- Data paths ---
+# data_root: /path/to/project/data
+#   Leave commented out to use $ILLUSTRIS_BFE/data (the project default).
+#   A relative path is resolved relative to the location of this YAML file.
+
+# Path to the halo parameters HDF5 file (absolute, or relative to data_root).
+# Default: {data_root}/{simulation}/halo_{halo_id}_params.hdf5
+halo_params_file: tng35-3-dark/halo_21537/halo_21537_params.hdf5
+
+# Path to the density profile fit text file used by stage_basis.
+# If omitted (null), stage_profiles will generate this file.
+profile_fit_file: tng35-3-dark/halo_21537/profiles/halo_21537_normalized_density_profile_fit.txt
+
+# Pattern for raw particle snapshot files, relative to data_root.
+# Supported placeholders: {sim}, {halo_id}, {snap} (zero-padded to 3 digits).
+particles_file_pattern: "tng35-3-dark/halo_{halo_id}/particle_data/galaxies_halo_{halo_id}_tng50-3-dark_{snap:03d}.hdf5"
