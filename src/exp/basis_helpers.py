@@ -148,6 +148,9 @@ def compute_basis(basis_params, r_basis, rho_basis, basis_path, basis_filename):
     #r_basis = np.linspace(rmin, rmax, nbins_basis)
     #rho_fit = fit_density_profile(r_basis, *fit_params)  # fit_density_profile and fit_params must be defined
 
+    # Use only basenames in the YAML so pyEXP resolves them relative to the
+    # working directory (basis_path).  Absolute paths in the YAML can cause
+    # pyEXP to hang on first use when no cache exists.
     basis_config = {
         "basis_id": basis_params.get("basis_id", "sphereSL"),
         "numr": nbins_basis,
@@ -156,8 +159,8 @@ def compute_basis(basis_params, r_basis, rho_basis, basis_path, basis_filename):
         "Lmax": lmax,
         "nmax": nmax,
         "rmapping": rmapping,
-        "modelname": modelname,
-        "cachename": cachename,
+        "modelname": os.path.basename(modelname),
+        "cachename": os.path.basename(cachename),
     }
 
     # Use the provided total mass normalization.

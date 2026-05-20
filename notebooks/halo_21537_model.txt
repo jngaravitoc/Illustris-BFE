@@ -1,4 +1,4 @@
-! ./halo_21537_model.txt
+! /home/ngc/Work/research/Illustris-BFE/notebooks/halo_21537_model.txt
 ! R    D    M    P
 2000
 5.667250e-03 7.418561e+02 3.205829e-16 -4.873870e+00

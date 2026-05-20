@@ -3,7 +3,6 @@ import sys
 import time
 import numpy as np
 import logging
-from mpi4py import MPI
 import pyEXP
 
 def compute_exp_coefs(halo_data, snap_time, basis, component, coefs_file, unit_system, **kwargs):
@@ -50,6 +49,7 @@ def compute_exp_coefs_parallel(
     # --------------------------------------------------
     # MPI setup
     # --------------------------------------------------
+    from mpi4py import MPI
     world_comm = MPI.COMM_WORLD
     world_size = world_comm.Get_size()
     my_rank    = world_comm.Get_rank()

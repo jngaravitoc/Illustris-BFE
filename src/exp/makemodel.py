@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 def write_table(tablename, radius, density, mass, potential, fmt="%.6e"):
@@ -30,7 +31,7 @@ def write_table(tablename, radius, density, mass, potential, fmt="%.6e"):
     # Stack data into a single 2D array for fast writing
     data = np.column_stack((radius, density, mass, potential))
 
-    header = f"! {tablename}\n! R    D    M    P\n{len(radius)}"
+    header = f"! ./{os.path.basename(tablename)}\n! R    D    M    P\n{len(radius)}"
     np.savetxt(tablename, data, fmt=fmt, header=header, comments="")
 
 def make_model(radius, density, Mtotal, output_filename='', physical_units=False, verbose=True):

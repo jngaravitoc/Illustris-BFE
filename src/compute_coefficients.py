@@ -63,7 +63,19 @@ def load_basis_from_config_file(basis_config_file: str) -> object:
     # pyEXP expects YAML config content here, not a file path.
     with open(config_path, "r", encoding="utf-8") as f:
         basis_yaml = f.read()
-    # Resolve relative model/cache filenames from the YAML directory.
+
+    # pyEXP hangs on first use when modelname/cachename are absolute paths and
+    # no cache exists.  Rewrite any absolute paths to bare filenames so pyEXP
+    # resolves them relative to the YAML's directory (set via os.chdir below).
+    import yaml as _yaml
+    cfg = _yaml.safe_load(basis_yaml)
+    params = cfg.get("parameters", {})
+    for key in ("modelname", "cachename"):
+        if key in params and os.path.isabs(str(params[key])):
+            params[key] = os.path.basename(params[key])
+    basis_yaml = _yaml.dump(cfg, default_flow_style=False, sort_keys=False)
+
+    # Resolve model/cache filenames from the YAML's directory.
     cwd = Path.cwd()
     try:
         os.chdir(config_path.parent)
