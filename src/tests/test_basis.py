@@ -31,7 +31,7 @@ def load_basis_fit() -> tuple[np.ndarray, np.ndarray]:
     return np.loadtxt(fit_path)
 
 
-def build_halo_21537_basis(nmax: int = 8, lmax: int = 2):
+def build_halo_21537_basis(nmax: int = 8, lmax: int = 2, compute_covariance: bool = True):
     """Compute the halo 21537 basis using the same inputs as notebook cell 9.
 
     The notebook cell uses:
@@ -41,6 +41,13 @@ def build_halo_21537_basis(nmax: int = 8, lmax: int = 2):
     - ``basis = build_basis(r_norm_fit, rho_norm_fit, nmax=nmax, lmax=lmax)``
 
     This function reproduces that construction through ``basis_helpers.compute_basis``.
+
+    Parameters
+    ----------
+    compute_covariance : bool, optional
+        If True, sets ``pcavar`` and ``totalCovar`` in the basis parameters so
+        that pyEXP initialises covariance storage during coefficient accumulation.
+        Required before calling ``basis.writeCoefCovariance``. Default is True.
     """
 
     r_norm_fit, rho_norm_fit = load_basis_fit()
@@ -59,6 +66,10 @@ def build_halo_21537_basis(nmax: int = 8, lmax: int = 2):
         ),
         "modelname": str(TMP_BASIS_DIR / "halo_21537_model.txt"),
         "basis_id": "sphereSL",
+        "pcavar": compute_covariance,
+        "samplesz": 1,
+        "totalCovar": compute_covariance,
+        "fullCovar": False,
     }
 
     basis = compute_basis(

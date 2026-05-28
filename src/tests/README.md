@@ -13,18 +13,27 @@ This folder contains integration and helper tests for the halo 21537 BFE workflo
 
 - `test_basis.py`
   - Rebuilds two basis objects from the same fitted profile inputs.
+  - `build_halo_21537_basis` defaults to `compute_covariance=True`, which sets
+    `pcavar`, `samplesz`, `totalCovar`, and `fullCovar` in the basis parameters
+    so pyEXP initialises covariance storage for downstream `writeCoefCovariance` calls.
   - Compares density arrays from:
     - `getBasis(1e-2, 1.2, numr=400)`
   - Uses `np.testing.assert_allclose` for the first 8 entries.
 
 - `test_coefficients_computation.py`
-  - Loads basis config from `src/tests/_basis_tmp/halo_21537_basis_config_16_08.yaml`.
-  - Runs `src/compute_coefficients.py` to generate:
-    - `_coefs_tmp/test_halo_21537_coefficients_16_08.h5`
-  - Compares generated coefficients with reference coefficients in `src/tests/`.
-  - Supports two modes:
-    - `smoke`: first 2 snapshots only, quick sanity check.
+  - Loads basis config from `src/tests/data/halo_21537_basis_config_08_02.yaml`
+    (includes covariance keys: `pcavar`, `samplesz`, `totalCovar`, `fullCovar`).
+  - Runs `compute_coefficients_for_snapshots` to generate coefficients.
+  - Supports two modes via `ILLUSTRIS_BFE_COEFS_TEST_MODE`:
+    - `lite`: every 10th snapshot only, quick sanity check (default for CI).
     - `full`: all snapshots in halo params and stanza comparison against reference.
+  - Contains three test functions:
+    - `test_compute_coefficients`: smoke test; asserts output HDF5 is created and non-empty.
+    - `test_coefficients_computation_matches_reference`: compares against reference coefficients
+      in `src/tests/data/halo_21537_coefficients_08_02.h5`.
+    - `test_covariance_computation`: runs with `covariance=True`, asserts that
+      `coefcovar.halo.cov.h5` is created in the output directory and is readable
+      via `pyEXP.basis.CovarianceReader`.
 
 - `test_bfe_profiles.py`
   - Helper loader utilities for exported profile tables and metadata parsing.
@@ -34,11 +43,12 @@ This folder contains integration and helper tests for the halo 21537 BFE workflo
 
 Expected test assets include:
 
-- `src/tests/_basis_tmp/halo_21537_basis_config_16_08.yaml`
-- `src/tests/halo_21537_coefficients_16_08.h5` (or legacy spelling variant)
-- `data/tng35-3-dark/halo_21537_params.hdf5`
-- `data/tng35-3-dark/` snapshot files used by coefficient computation
-- `data/dimer_density_profile_fit.txt` (used by basis-related workflows)
+- `src/tests/data/halo_21537_basis_config_08_02.yaml` (includes covariance keys)
+- `src/tests/data/halo_21537_basis_cache_08_02.txt`
+- `src/tests/data/halo_21537_coefficients_08_02.h5` (reference coefficients)
+- `src/tests/data/halo_21537_normalized_density_profile_fit.txt`
+- `data/tng35-3-dark/halo_21537/halo_21537_params.hdf5`
+- `data/tng35-3-dark/halo_21537/particle_data/` snapshot files
 
 ## How to Run
 
@@ -53,10 +63,10 @@ From `src/tests`:
 Modes:
 
 ```bash
-./run_tests.sh smoke
+./run_tests.sh lite
 ./run_tests.sh full
 ./run_tests.sh basis
-./run_tests.sh coeff-smoke
+./run_tests.sh coeff-lite
 ./run_tests.sh coeff-full
 ```
 
@@ -74,25 +84,30 @@ From repo root:
 /home/ngc/Work/research/codes/environments/pyexp310/bin/python src/tests/test_basis.py
 ```
 
-### 2) Coefficients test (smoke mode, faster)
+### 2) Coefficients test (lite mode, faster)
 
-From `src/tests`:
+From repo root:
 
 ```bash
-cd src/tests
-ILLUSTRIS_BFE_COEFS_TEST_MODE=smoke /home/ngc/Work/research/codes/environments/pyexp310/bin/python test_coefficients_computation.py
+ILLUSTRIS_BFE_COEFS_TEST_MODE=lite /home/ngc/Work/research/codes/environments/pyexp310/bin/python src/tests/test_coefficients_computation.py
 ```
 
 ### 3) Coefficients test (full comparison)
 
-From `src/tests`:
+From repo root:
 
 ```bash
-cd src/tests
-/home/ngc/Work/research/codes/environments/pyexp310/bin/python test_coefficients_computation.py
+/home/ngc/Work/research/codes/environments/pyexp310/bin/python src/tests/test_coefficients_computation.py
 ```
 
 ## Notes
 
-- If a coefficients run fails with YAML parsing errors, verify that `src/compute_coefficients.py` loads YAML file content and passes that content to `pyEXP.basis.Basis.factory(...)`.
-- `test_coefficients_computation.py` prints a short debug preview of the basis YAML file path and first lines to help diagnose basis-load issues quickly.
+- The reference basis config (`src/tests/data/halo_21537_basis_config_08_02.yaml`) includes
+  `pcavar: true`, `samplesz: 1`, `totalCovar: true`, `fullCovar: false` so the basis loads
+  with covariance storage initialised. If you regenerate this file, make sure those keys are present.
+- Covariance files are written as `coefcovar.{component}.{runtag}.h5` (e.g. `coefcovar.halo.cov.h5`)
+  in the same directory as the coefficients output file. The runtag used by `compute_exp_coefs` is `'cov'`.
+- `covariance` defaults to `False` in `compute_coefficients_for_snapshots` and `PipelineConfig`
+  (opt-in at the pipeline level). Set `covariance: true` in your pipeline YAML to enable it.
+- If a coefficients run fails with YAML parsing errors, verify that `src/compute_coefficients.py`
+  loads YAML file content and passes that content to `pyEXP.basis.Basis.factory(...)`.

@@ -77,6 +77,60 @@ def test_coefficients_computation_matches_reference(nmax: int=8, lmax: int=2) ->
     coefs_obj.CompareStanzas(coefs_tests)
 
 
+def test_covariance_computation(nmax: int = 8, lmax: int = 2) -> None:
+    """Test that coefficient covariance computation produces readable output."""
+    
+    basis_config = DATA_DIR / f"halo_21537_basis_config_{nmax:02d}_{lmax:02d}.yaml"
+    halo_params = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "halo_21537_params.hdf5"
+    data_dir = REPO_ROOT / "data" / "tng35-3-dark" / "halo_21537" / "particle_data"
+    
+    assert basis_config.exists(), f"Missing basis config: {basis_config}"
+    assert halo_params.exists(), f"Missing halo params file: {halo_params}"
+    assert data_dir.exists(), f"Missing data dir: {data_dir}"
+    
+    # Use lite mode for faster covariance test
+    os.environ[TEST_MODE_ENV] = "lite"
+    
+    halo_params_data = read_halo_params(str(halo_params))
+    snapshots = [int(s) for s in halo_params_data["snap"]]
+    snapshots = snapshots[::10]  # Lite mode sampling
+    
+    output_name = f"test_covariance_halo_21537_{nmax:02d}_{lmax:02d}.h5"
+    TESTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = TESTS_OUTPUT_DIR / output_name
+    if output_path.exists():
+        output_path.unlink()
+    
+    compute_coefficients_for_snapshots(
+        basis_config_file=str(basis_config),
+        halo_params_file=str(halo_params),
+        data_dir=str(data_dir),
+        snapshots=snapshots,
+        nmax=nmax,
+        lmax=lmax,
+        coefs_filename=output_name,
+        output_dir=TESTS_OUTPUT_DIR,
+        covariance=True,
+    )
+    
+    # Test covariance file creation and readability
+    # pyEXP writes coefcovar.{component}.{runtag}.h5 in the output directory
+    compname = 'halo'
+    runtag = 'cov'
+    covar_filename = f'coefcovar.{compname}.{runtag}.h5'
+    covar_path = TESTS_OUTPUT_DIR / covar_filename
+    
+    # Check that covariance file was created
+    assert covar_path.exists(), f"Covariance file not created: {covar_path}"
+    
+    # Test reading the covariance
+    try:
+        covar = pyEXP.basis.CovarianceReader(str(covar_path))
+        assert covar is not None, "CovarianceReader returned None"
+    except Exception as e:
+        raise AssertionError(f"Failed to read covariance file: {e}")
+
+
 if __name__ == "__main__":
     # Optional local shortcut: python test_coefficients_computation.py smoke
     if len(sys.argv) > 1 and sys.argv[1].strip().lower() in {"lite", "full"}:
@@ -84,3 +138,6 @@ if __name__ == "__main__":
 
     test_coefficients_computation_matches_reference()
     print("Coefficient comparison test passed.")
+    
+    test_covariance_computation()
+    print("Covariance computation test passed.")

@@ -178,6 +178,7 @@ def test_config_roundtrip() -> None:
     assert config_b.grid_bins == config_a.grid_bins
     assert config_b.grid_range == config_a.grid_range
     assert config_b.stages == config_a.stages
+    assert config_b.covariance == config_a.covariance
 
 
 # ---------------------------------------------------------------------------
