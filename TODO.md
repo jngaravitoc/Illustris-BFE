@@ -1,14 +1,18 @@
-## Done
+## TODO
 
-- Update notebook style path after repo reorganization (`../src/illustris_bfe.mplstyle`)
-- Add basis density comparison in `src/tests/test_basis.py` for `getBasis(1e-2, 1.2, numr=400)`
-- Create `src/compute_basis_from_fit.py` (defaults: `nmax=8`, `lmax=2`)
-- Create/update `src/compute_coefficients.py` to load basis from YAML and write coefficients to `_coefs_tmp/`
-- Add `src/tests/test_coefficients_computation.py` with full reference comparison and smoke mode
+### Misc
+- Unify fields computations script
+- Check coeffs parallel implementation
+- Rename exp (exptools) and hydrotools (hydtools) folder to avoid collisions in virtual environments
+- Create a virtual environment
+- Unified config files
 
-## Remaining
+### exptools
 
-- Check particle mass table
-- Compute density profile for host particles and host+fuzz
-- Plot time-evolving normalized density profile
-- Fit density profiles
+- Compute coefficients signal to noise and smooth coefficients
+
+### hydtools
+- Streamline the process to make the halo fitting functions with hydrotools
+- Get profile from hydrotools directly 
+- Document workflow
+- Add tests 
