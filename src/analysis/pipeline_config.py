@@ -105,6 +105,7 @@ class PipelineConfig:
     grid_bins: int = 50
     spatial_axis: int = 2
     metrics_generate_all_snapshot_maps: bool = False
+    covariance: bool = False
     stages: dict[str, bool] = field(default_factory=lambda: dict(DEFAULT_STAGES))
     data_root: Path = field(default_factory=_default_data_root)
     halo_params_file: Optional[Path] = None
@@ -337,6 +338,7 @@ class PipelineConfig:
             "grid_bins": self.grid_bins,
             "spatial_axis": self.spatial_axis,
             "metrics_generate_all_snapshot_maps": self.metrics_generate_all_snapshot_maps,
+            "covariance": self.covariance,
             "stages": self.stages,
             "data_root": str(self.data_root),
             "halo_params_file": str(self.halo_params_file),

@@ -2,6 +2,8 @@ import os
 import yaml
 import pyEXP
 from makemodel import make_model
+from pathlib import Path
+
 
 def make_basis_config(basis_id, parameters):
     """
@@ -151,6 +153,12 @@ def compute_basis(basis_params, r_basis, rho_basis, basis_path, basis_filename):
     # Use only basenames in the YAML so pyEXP resolves them relative to the
     # working directory (basis_path).  Absolute paths in the YAML can cause
     # pyEXP to hang on first use when no cache exists.
+    known_keys = {
+        'rmin', 'rmax', 'nbins', 'lmax', 'nmax', 'rmapping',
+        'cachename', 'modelname', 'basis_id', 'Mtotal',
+    }
+    extra_params = {k: v for k, v in basis_params.items() if k not in known_keys}
+
     basis_config = {
         "basis_id": basis_params.get("basis_id", "sphereSL"),
         "numr": nbins_basis,
@@ -161,6 +169,7 @@ def compute_basis(basis_params, r_basis, rho_basis, basis_path, basis_filename):
         "rmapping": rmapping,
         "modelname": os.path.basename(modelname),
         "cachename": os.path.basename(cachename),
+        **extra_params,
     }
 
     # Use the provided total mass normalization.
@@ -181,5 +190,103 @@ def compute_basis(basis_params, r_basis, rho_basis, basis_path, basis_filename):
     os.chdir(cwd_path)
     return basis
 
+def _validate_cache(cache_path: Path, params: dict) -> None:
+    """
+    Validate that the cache file is consistent with the YAML config parameters.
+
+    Raises
+    ------
+    ValueError
+        If any parameter stored in the cache does not match the YAML config.
+    FileNotFoundError
+        If the cache file does not exist.
+    """
+    import h5py
+
+    if not cache_path.exists():
+        raise FileNotFoundError(
+            f"Cache file not found: {cache_path}\n"
+            "Run build_basis() to create it."
+        )
+
+    checks = {
+        "model":    ("modelname", str,   lambda a, b: Path(a).name == Path(b).name),
+        "nmax":     ("nmax",      int,   lambda a, b: int(a) == int(b)),
+        "lmax":     ("lmax",      int,   lambda a, b: int(a) == int(b)),
+        "numr":     ("numr",      int,   lambda a, b: int(a) == int(b)),
+        "rmapping": ("rmapping",  float, lambda a, b: abs(float(a) - float(b)) < 1e-10),
+        "rmin":     ("rmin",      float, lambda a, b: abs(float(a) - float(b)) < 1e-6),
+        "rmax":     ("rmax",      float, lambda a, b: abs(float(a) - float(b)) < 1e-6),
+    }
+
+    with h5py.File(cache_path, "r") as f:
+        cache_attrs = dict(f.attrs)
+
+    mismatches = []
+    for cache_key, (yaml_key, _, eq) in checks.items():
+        if cache_key not in cache_attrs or yaml_key not in params:
+            continue
+        cache_val = cache_attrs[cache_key]
+        yaml_val  = params[yaml_key]
+        if not eq(cache_val, yaml_val):
+            mismatches.append(
+                f"  {yaml_key}: YAML={yaml_val!r}  vs  cache={cache_val!r}"
+            )
+
+    if mismatches:
+        raise ValueError(
+            f"Cache file '{cache_path.name}' does not match the YAML config:\n"
+            + "\n".join(mismatches)
+            + "\nDelete or regenerate the cache with build_basis()."
+        )
 
 
+def load_basis(basis_config_file: str) -> object:
+    """
+    Load a basis from a YAML config file.
+
+    Validates the cache against the config before calling pyEXP to avoid a
+    silent, slow recomputation caused by a stale or mismatched cache.
+
+    Parameters
+    ----------
+    basis_config_file : str
+        Path to basis config YAML file.
+
+    Returns
+    -------
+    basis : pyEXP.basis.Basis
+        The loaded basis object.
+    """
+    import yaml as _yaml
+
+    config_path = Path(basis_config_file).resolve()
+    print(f"Loading basis from {config_path}...")
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        basis_yaml = f.read()
+
+    cfg = _yaml.safe_load(basis_yaml)
+    params = cfg.get("parameters", {})
+
+    # Rewrite any absolute paths to bare filenames so pyEXP resolves them
+    # relative to the working directory set via os.chdir below.
+    for key in ("modelname", "cachename"):
+        if key in params and os.path.isabs(str(params[key])):
+            params[key] = os.path.basename(params[key])
+    basis_yaml = _yaml.dump(cfg, default_flow_style=False, sort_keys=False)
+
+    # Validate cache before handing off to pyEXP (avoids silent recomputation).
+    cache_name = params.get("cachename", "")
+    cache_path = config_path.parent / cache_name
+    _validate_cache(cache_path, params)
+
+    # Resolve model/cache filenames from the YAML's directory.
+    cwd = Path.cwd()
+    try:
+        os.chdir(config_path.parent)
+        basis = pyEXP.basis.Basis.factory(basis_yaml)
+    finally:
+        os.chdir(cwd)
+    print(f"  Basis type: {type(basis).__name__}")
+    return basis

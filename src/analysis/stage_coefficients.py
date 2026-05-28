@@ -98,6 +98,7 @@ def run(config: PipelineConfig) -> dict:
         sim=config.sim,
         coefs_filename=coefs_file.name,
         output_dir=coefs_dir,
+        covariance=config.covariance,
     )
 
     if not coefs_file.exists():

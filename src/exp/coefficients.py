@@ -5,6 +5,30 @@ Functionality to handle coefficients
 import numpy as np
 
 
+def signal_to_noise(time):
+    covar = pyEXP.basis.CovarianceReader('coefcovar.{}.{}'.format(compname, runtag))
+    counts, masses, coefs, covrs = covar['dark'].getCoefCovariance(time)
+
+    for l in range(lmax):
+        for m in range(l+1):
+            L = basis['dark'].I(l, m)
+    
+        sumCof = np.zeros((nmaxh), dtype=np.complex128)
+        for T in range(nsamp):
+            sumCof += coefs[T, L, :]
+        # The sub sample mean
+        sumCof /= nsamp
+        # Make the covariance matrix using np.cov.  This will automatically normalize
+        varmat = np.zeros((nmaxh, nsamp), dtype=np.complex128)
+        for T in range(nsamp):
+            varmat[:, T] = coefs[T, L, :]
+        val = np.cov(varmat)
+        sn = np.zeros(val.shape[0])
+        for i in range(val.shape[0]):
+            sn[i] = np.abs(sumCof[i])**2*nsamp/np.abs(val[i, i])
+            
+    return sn
+
 def remove_terms(original_coefficients, n, l, m):
     """
     Remove coefficients 
