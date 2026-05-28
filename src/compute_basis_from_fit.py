@@ -69,6 +69,8 @@ def compute_basis_from_fit(
     lmax: int = 2,
     basis_path: str | None = None,
     basis_filename: str | None = None,
+    covariance: bool = False,
+    samplesz: int = 1,
 ) -> tuple:
     """
     Compute a basis from density profile fit and halo parameters.
@@ -87,7 +89,11 @@ def compute_basis_from_fit(
         Directory for basis output files. If None, uses a temp directory.
     basis_filename : str, optional
         Basis config filename. If None, generates one from nmax/lmax.
-        
+    covariance : bool, optional
+        Whether to compute coefficient covariance (default: False).
+    samplesz : int, optional
+        Sample size passed to pyEXP covariance estimation (default: 1).
+
     Returns
     -------
     basis : pyEXP.basis.Basis
@@ -129,6 +135,10 @@ def compute_basis_from_fit(
         ),
         "modelname": str(Path(basis_path) / "basis_model.txt"),
         "basis_id": "sphereSL",
+        "pcavar": covariance,
+        "samplesz": samplesz,
+        "totalCovar": covariance,
+        "fullCovar": False, # For some particular tests we might need this
     }
     
     print(f"Computing basis with nmax={nmax}, lmax={lmax}...")
@@ -187,7 +197,19 @@ def main():
         default=None,
         help="Basis config filename (default: auto-generated).",
     )
-    
+    parser.add_argument(
+        "--covariance",
+        action="store_true",
+        default=False,
+        help="Compute coefficient covariance (default: False).",
+    )
+    parser.add_argument(
+        "--samplesz",
+        type=int,
+        default=1,
+        help="Sample size for pyEXP covariance estimation (default: 1).",
+    )
+
     args = parser.parse_args()
     
     # Verify input files exist
@@ -207,6 +229,8 @@ def main():
             lmax=args.lmax,
             basis_path=args.basis_path,
             basis_filename=args.basis_filename,
+            covariance=args.covariance,
+            samplesz=args.samplesz,
         )
         
         print("\nBasis computation successful!")

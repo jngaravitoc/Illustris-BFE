@@ -106,6 +106,7 @@ class PipelineConfig:
     spatial_axis: int = 2
     metrics_generate_all_snapshot_maps: bool = False
     covariance: bool = False
+    samplesz: int = 1
     stages: dict[str, bool] = field(default_factory=lambda: dict(DEFAULT_STAGES))
     data_root: Path = field(default_factory=_default_data_root)
     halo_params_file: Optional[Path] = None
@@ -241,6 +242,7 @@ class PipelineConfig:
             lmax=lmax,
             snapshots=list(self.snapshots),
             stages=dict(self.stages),
+            samplesz=self.samplesz,
         )
 
     def basis_config_file(self) -> Path:
@@ -339,6 +341,7 @@ class PipelineConfig:
             "spatial_axis": self.spatial_axis,
             "metrics_generate_all_snapshot_maps": self.metrics_generate_all_snapshot_maps,
             "covariance": self.covariance,
+            "samplesz": self.samplesz,
             "stages": self.stages,
             "data_root": str(self.data_root),
             "halo_params_file": str(self.halo_params_file),

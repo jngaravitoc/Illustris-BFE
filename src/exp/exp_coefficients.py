@@ -1,11 +1,12 @@
 import os
 import sys
 import time
+from pathlib import Path
 import numpy as np
 import logging
 import pyEXP
 
-def compute_exp_coefs(halo_data, snap_time, basis, component, coefs_file, unit_system, covariance=True, **kwargs):
+def compute_exp_coefs(halo_data, snap_time, basis, component, coefs_file, unit_system, covariance=True, samplesz=1, **kwargs):
     """
     Compute EXP basis function coefficients for a halo snapshot.
 
@@ -51,6 +52,12 @@ def compute_exp_coefs(halo_data, snap_time, basis, component, coefs_file, unit_s
 
     # Compute coefficients
     start_time = time.time()
+
+    # enableCoefCovariance must be called BEFORE createFromArray so that pyEXP
+    # accumulates the subsample covariance during the array expansion.
+    if covariance == True:
+        basis.enableCoefCovariance(True, samplesz)
+
     coef = basis.createFromArray(halo_data['mass'], halo_data['pos'], snap_time)
     coefs = pyEXP.coefs.Coefs.makecoefs(coef, name=component)
     coefs.add(coef)
@@ -61,13 +68,13 @@ def compute_exp_coefs(halo_data, snap_time, basis, component, coefs_file, unit_s
     if covariance == True:
         # runtag is added in case one wants to sample the particle data and compute
         # the covariance for each sample. For now, we will only sample once.
-        print("   computing covariance")
+        print("    computing covariance")
         runtag = 'cov'
         coefs_dir = os.path.dirname(os.path.abspath(coefs_file))
         cwd_orig = os.getcwd()
         try:
             os.chdir(coefs_dir)
-            basis.writeCoefCovariance(component, runtag, snap_time)
+            basis.writeCoefCovariance(Path(coefs_file).stem, runtag, snap_time)
         finally:
             os.chdir(cwd_orig)
 

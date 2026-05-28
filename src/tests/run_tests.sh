@@ -19,6 +19,7 @@ Modes:
   basis       Run only basis test
   coeff-lite  Run only coefficient lite test
   coeff-full  Run only full coefficient comparison test
+  covariance  Run only covariance computation test
   profile     Run only exo/exp density profile test
 
 Env vars:
@@ -49,6 +50,14 @@ run_coeff_full() {
   (
     cd "$REPO_ROOT/src/tests"
     "$PYTHON_BIN" test_coefficients_computation.py
+  )
+}
+
+run_covariance_test() {
+  echo "[run] covariance computation test"
+  (
+    cd "$REPO_ROOT/src/tests"
+    ILLUSTRIS_BFE_COEFS_TEST_MODE=lite "$PYTHON_BIN" test_coefficients_computation.py covariance
   )
 }
 
@@ -86,6 +95,9 @@ case "$MODE" in
     ;;
   coeff-full)
     run_coeff_full
+    ;;
+  covariance)
+    run_covariance_test
     ;;
   profile|exp-density)
     run_exo_density_profile_test

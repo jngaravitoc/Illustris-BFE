@@ -19,6 +19,7 @@ if str(SRC_DIR) not in sys.path:
 from compute_coefficients import compute_coefficients_for_snapshots
 from exp.data_ios import read_halo_params
 
+
 TEST_MODE_ENV = "ILLUSTRIS_BFE_COEFS_TEST_MODE"
 
 def test_compute_coefficients(nmax: int = 8, lmax: int = 2) -> None:
@@ -111,13 +112,13 @@ def test_covariance_computation(nmax: int = 8, lmax: int = 2) -> None:
         coefs_filename=output_name,
         output_dir=TESTS_OUTPUT_DIR,
         covariance=True,
+        samplesz=1,
     )
     
     # Test covariance file creation and readability
-    # pyEXP writes coefcovar.{component}.{runtag}.h5 in the output directory
-    compname = 'halo'
+    # pyEXP writes coefcovar.{coefs_stem}.{runtag}.h5 in the output directory
     runtag = 'cov'
-    covar_filename = f'coefcovar.{compname}.{runtag}.h5'
+    covar_filename = f'coefcovar.{output_path.stem}.{runtag}.h5'
     covar_path = TESTS_OUTPUT_DIR / covar_filename
     
     # Check that covariance file was created
@@ -127,17 +128,26 @@ def test_covariance_computation(nmax: int = 8, lmax: int = 2) -> None:
     try:
         covar = pyEXP.basis.CovarianceReader(str(covar_path))
         assert covar is not None, "CovarianceReader returned None"
+        count, masses, coeds, covrs = covar.getCoefCovariance(snapshots[-1])
+        assert len(count) == 1
     except Exception as e:
         raise AssertionError(f"Failed to read covariance file: {e}")
 
 
 if __name__ == "__main__":
-    # Optional local shortcut: python test_coefficients_computation.py smoke
-    if len(sys.argv) > 1 and sys.argv[1].strip().lower() in {"lite", "full"}:
-        os.environ[TEST_MODE_ENV] = sys.argv[1].strip().lower()
+    # Optional local shortcut: python test_coefficients_computation.py [lite|full|covariance]
+    _arg = sys.argv[1].strip().lower() if len(sys.argv) > 1 else ""
 
-    test_coefficients_computation_matches_reference()
-    print("Coefficient comparison test passed.")
-    
-    test_covariance_computation()
-    print("Covariance computation test passed.")
+    if _arg == "covariance":
+        os.environ[TEST_MODE_ENV] = "lite"
+        test_covariance_computation()
+        print("Covariance computation test passed.")
+    else:
+        if _arg in {"lite", "full"}:
+            os.environ[TEST_MODE_ENV] = _arg
+
+        test_coefficients_computation_matches_reference()
+        print("Coefficient comparison test passed.")
+
+        test_covariance_computation()
+        print("Covariance computation test passed.")

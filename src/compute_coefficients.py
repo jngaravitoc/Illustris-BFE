@@ -122,6 +122,8 @@ def compute_coefficients_for_snapshots(
     sim: str = "tng35-3-dark",
     coefs_filename: str | None = None,
     output_dir: Path | None = None,
+    covariance: bool = False,
+    samplesz: int = 1,
 ) -> Path:
     """
     Compute and save coefficients for specified snapshots.
@@ -148,6 +150,10 @@ def compute_coefficients_for_snapshots(
         Output coefficients filename. If None, uses coefficients_{nmax}_{lmax}.h5.
     output_dir : Path, optional
         Directory to write the coefficients file. Defaults to COEFS_OUTPUT_DIR.
+    covariance : bool, optional
+        Whether to compute coefficient covariance (default: False).
+    samplesz : int, optional
+        Sample size passed to pyEXP covariance estimation (default: 1).
 
     Returns
     -------
@@ -237,6 +243,8 @@ def compute_coefficients_for_snapshots(
                 component='halo',
                 coefs_file=str(coefs_file),
                 unit_system=units,
+                covariance=covariance,
+                samplesz=samplesz,
             )
             print(f"  ✓ Coefficients computed and saved")
         except Exception as e:

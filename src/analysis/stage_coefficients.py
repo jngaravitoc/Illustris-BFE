@@ -99,6 +99,7 @@ def run(config: PipelineConfig) -> dict:
         coefs_filename=coefs_file.name,
         output_dir=coefs_dir,
         covariance=config.covariance,
+        samplesz=config.samplesz,
     )
 
     if not coefs_file.exists():

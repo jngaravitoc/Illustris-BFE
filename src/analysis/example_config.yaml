@@ -26,10 +26,14 @@ spatial_axis: 2
 # If true, stage_metrics also generates one 2-D map figure per available snapshot.
 metrics_generate_all_snapshot_maps: false
 
-# If true, compute and write coefficient covariance (coefcovar.{component}.cov.h5)
+# If true, compute and write coefficient covariance (coefcovar.{coefs_stem}.cov.h5)
 # alongside the coefficients file. Requires the basis to be built with pcavar and
 # totalCovar enabled. Defaults to false (opt-in).
-covariance: false
+covariance: true
+
+# Sample size passed to pyEXP covariance estimation. Only relevant when
+# covariance: true. Defaults to 1.
+samplesz: 1
 
 # --- Stages to run (set to false to skip a stage) ---
 stages:

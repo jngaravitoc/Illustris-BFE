@@ -71,6 +71,7 @@ def _make_config(output_root: Path, snapshots: list[int] = SNAPSHOTS) -> Pipelin
         halo_params_file=REAL_DATA / SIM / f"halo_{HALO_ID}" / f"halo_{HALO_ID}_params.hdf5",
         profile_fit_file=TEST_DATA / f"halo_{HALO_ID}_normalized_density_profile_fit.txt",
         stages={s: True for s in STAGE_ORDER},
+        samplesz=1,
     )
 
 
@@ -91,6 +92,7 @@ def _make_multi_order_config(
         halo_params_file=REAL_DATA / SIM / f"halo_{HALO_ID}" / f"halo_{HALO_ID}_params.hdf5",
         profile_fit_file=TEST_DATA / f"halo_{HALO_ID}_normalized_density_profile_fit.txt",
         stages={s: True for s in STAGE_ORDER},
+        samplesz=1,
     )
 
 
@@ -179,6 +181,7 @@ def test_config_roundtrip() -> None:
     assert config_b.grid_range == config_a.grid_range
     assert config_b.stages == config_a.stages
     assert config_b.covariance == config_a.covariance
+    assert config_b.samplesz == config_a.samplesz
 
 
 # ---------------------------------------------------------------------------
