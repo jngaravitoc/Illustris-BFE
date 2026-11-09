@@ -6,11 +6,26 @@ from matplotlib import colors
 import matplotlib.pyplot as plt
 import pyEXP
 
+
+
+def is_hdf5_valid(filepath):
+    """Return True if the HDF5 file can be opened and read without errors."""
+    try:
+        with h5py.File(filepath, 'r') as f:
+            # Attempt to traverse the full key tree to catch deep corruption
+            def visit_all(name, obj):
+                pass
+            f.visititems(visit_all)
+        return True
+    except Exception as e:
+        print(f'[CORRUPT] {filepath}: {e}')
+        return False
+
+
 if __name__ == "__main__":
     # Define data paths
     CATALOG_FILE = '/home/garavito/codes/hydrotools/tutorials/mwm31s_hostcatalog.hdf5'
     OUTPUT_DIR   = Path('/n/nyx3/garavito/projects/Illustris-BFE/data/mwm31')
-
     print('Output directory  :', OUTPUT_DIR)
 
     # Load subfind halo IDs
@@ -18,10 +33,15 @@ if __name__ == "__main__":
         subhalo_ids = f['SubfindID'][:].tolist()
 
     for subhalo_id in subhalo_ids:
-        output_file = OUTPUT_DIR / f'galaxies_tng50-3-dark_{subhalo_id}_099.hdf5'  # fixed: per-subhalo, inside loop
+        halo_dir = f"halo_{subhalo_id}"
+        output_file = OUTPUT_DIR / halo_dir / f'galaxies{subhalo_id}_tng50_099.hdf5'
 
         if not output_file.exists():
             print(f'[SKIP] File not found: {output_file}')
+            continue
+
+        if not is_hdf5_valid(output_file):
+            print(f'[SKIP] Corrupt HDF5 file: {output_file}')
             continue
 
         with h5py.File(output_file, 'r') as f:
@@ -87,5 +107,5 @@ if __name__ == "__main__":
         axes[1].set_aspect('equal')
         fig.colorbar(bfe_plot, ax=axes[1], label=r'$\log_{10}\,|\rho_{\rm BFE}|$')
 
-        plt.savefig(OUTPUT_DIR / f'contour_fields_{subhalo_id}.png', dpi=150)  # fixed: unique filename per halo
+        plt.savefig(OUTPUT_DIR / halo_dir /  f'contour_fields_{subhalo_id}.png', dpi=150)  # fixed: unique filename per halo
         plt.close(fig)  # fixed: prevents memory leak over 198 iterations
